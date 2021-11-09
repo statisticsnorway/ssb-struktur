@@ -57,7 +57,7 @@ rate_model <- function(
 
   # Set up empty dataframes
   strata_n <- length(strata_levels)
-  T_h <- data.frame(stratum = vector(mode = "character", length = strata_n),
+  T_h <- data.frame(stratum = rep(NA, strata_n),
                     N_pop = vector(mode = "numeric", length = strata_n),
                     X_pop = vector(mode = "numeric", length = strata_n),
                     N_utv = vector(mode = "numeric", length = strata_n),
