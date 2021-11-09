@@ -1,4 +1,4 @@
-
+library(MASS)
 #' Rate model
 #' Estimates and diagnostics for estimating a total from a rate model
 #'
@@ -8,10 +8,10 @@
 #' @param x name of the explanatory variable
 #' @param y name of the statistic vaiable
 #' @param stratum name of the stratum variable
-#' @param groups not implemented yet
-#' @param robust not implemented yet
-#' @param exclude not implemented yet
-#' @param impute not implemented yet
+#' @param groups name of variable(s) for using for groups
+#' @param robust logic for if robust variance estimation should be used
+#' @param cal_dffits logic for if dffits should be calculated and returned.
+#' @param impute whether to produce and return an mass imputed population file. Not implemented yet
 #'
 #' @return
 #' @export
@@ -25,16 +25,16 @@ rate_model <- function(
   y,
   stratum,
   groups = NULL,  #grupper for å estimere
-  robust = FALSE, #robust estimation of CV
-  exclude = NULL, #observasjoner til å ekskudere
+  robust = TRUE,  #robust estimation of CV
+  calc_dffits = TRUE,  #whether to calculate dffits values
   impute = FALSE  #om en masseimputertfil skal produseres
   ){
+
   sample <- as.data.frame(sample)
   pop <- as.data.frame(pop)
 
   # Check all in sample have y values
   sample <- sample[!is.na(sample[, y]),]
-  #sample[, y][is.na(sample[, y])] <- 0
 
   # create formula
   form <- as.formula(paste(y, "~", x, "-1"))
@@ -46,17 +46,16 @@ rate_model <- function(
   tab <- table(vekt == Inf)
   if (length(tab) > 1){
     message("Some observation have zero as their explanatory variable and were adjusted (1/(x+1)) to allow a real weight input")
-    vekt[vekt == Inf] <- 1/(sample[,x_var]+1)
+    vekt[vekt == Inf] <- 1/(sample[, x_var]+1)
   }
 
   strata_levels <- unique(pop[, stratum])
   strata_levels_utvalg <- unique(sample[, stratum])
   if (!all(strata_levels %in% strata_levels_utvalg)) {
-    stop(" Not all strata were the same in the population file and sampel file.")
+    stop("Not all strata were the same in the population file and sample file.")
   }
 
-  # for testing
-  #st <- strata_levels[1]
+  # Set up empty dataframes
   strata_n <- length(strata_levels)
   T_h <- data.frame(stratum = vector(mode = "character", length = strata_n),
                     N_pop = vector(mode = "numeric", length = strata_n),
@@ -64,16 +63,27 @@ rate_model <- function(
                     N_utv = vector(mode = "numeric", length = strata_n),
                     X_utv = vector(mode = "numeric", length = strata_n),
                     T_est = vector(mode = "numeric", length = strata_n),
+                    VAR = vector(mode = "numeric", length = strata_n),
                     LB = vector(mode = "numeric", length = strata_n),
                     UB = vector(mode = "numeric", length = strata_n),
-                    CV = vector(mode = "numeric", length = strata_n)
+                    CV1 = vector(mode = "numeric", length = strata_n),
+                    CV2 = vector(mode = "numeric", length = strata_n),
+                    CV3 = vector(mode = "numeric", length = strata_n)
   )
 
-  Dffits <- data.frame(id = NA, stratum = NA, x = NA, y = NA, N_utv = NA, G = NA)
+  # Set up Dffits data frame
+  if (calc_dffits){
+    Dffits <- data.frame(id = NA, stratum = NA, x = NA, y = NA, N_utv = NA,
+                         R = NA, G = NA, R_grense = NA, G_grense = NA,
+                         y_est_with = NA, y_est_without = NA)
+  }
 
+
+  # Run through estimation within each stratum
   for(i in 1:strata_n){
     st <- strata_levels[i]
 
+    # create temporary data and weights for specific stratum
     pop_tmp <- pop[pop[, stratum] == st, ]
     s_tmp <- sample[sample[, stratum] == st, ]
     vekt_tmp <- vekt[sample[, stratum] == st]
@@ -86,9 +96,11 @@ rate_model <- function(
     T_h$X_utv[i] <- sum(s_tmp[, x])
 
     # Add in sums to Dffits data frame
+    if (calc_dffits){
     Dffits_tmp <- data.frame(id = s_tmp[, id], stratum = s_tmp[, stratum],
-                             x = s_tmp[, stratum], y = s_tmp[, stratum],
+                             x = s_tmp[, x], y = s_tmp[, y],
                              N_utv = nrow(s_tmp))
+    }
 
     # Fit model
     mod_tmp <- lm(form, data = s_tmp, weights = vekt_tmp)
@@ -97,27 +109,96 @@ rate_model <- function(
     X_h <- sum(pop_tmp[, x])
     T_h$T_est[i] <- X_h * mod_tmp$coefficients
 
-    # Get estimate for variance (default CV2 in notat)
+    # Calculate robust etimates of variance
     var_tmp <- robust_var(pop_tmp, s_tmp, id=id, x=x,
-                           ei = mod_tmp$residuals,
-                           model_type = "rate",
-                           var_type = "cv2")
-    # Try normal variance
-    var_alt <- var_norm(pop_tmp, s_tmp, x=x,
-                          sigma = sigma(mod_tmp))
+                            mod = mod_tmp,
+                            model_type = "rate",
+                            var_type = "cv2")
 
-    # Add estimates to results table
-    T_h$LB[i] <- T_h$T_est[i] - 1.96 * sqrt(var_tmp)
-    T_h$UB[i] <- T_h$T_est[i] + 1.96 * sqrt(var_tmp)
-    T_h$CV[i] <- sqrt(var_tmp)/T_h$T_est[i] * 100
-    T_h$CV_vanlig[i] <- sqrt(var_alt)/T_h$T_est[i] * 100
+    # Create upper and lower boundaries
+    T_h$VAR[i] <- var_tmp$V2
+    T_h$LB[i] <- T_h$T_est[i] - 1.96 * sqrt(var_tmp$V2)
+    T_h$UB[i] <- T_h$T_est[i] + 1.96 * sqrt(var_tmp$V2)
 
-    # calculate G/DFFITS values
-    diagnostics <- model_diag(pop_tmp, s_tmp, x, y, hatvalues(mod_tmp))
+    # Add in robust coefficient of variations (CV)
+    T_h$CV2[i] <- sqrt(var_tmp$V2)/T_h$T_est[i] * 100
+    T_h$CV1[i] <- sqrt(var_tmp$V1)/T_h$T_est[i] * 100
+    T_h$CV3[i] <- sqrt(var_tmp$V3)/T_h$T_est[i] * 100
+
+    if (calc_dffits){
+    # calculate and add G/DFFITS values
+    diagnostics <- model_diag(pop_tmp, s_tmp, x, y, mod_tmp)
+    Dffits_tmp$R <- diagnostics$R
     Dffits_tmp$G <- diagnostics$G
+
+    # Add in extreme value boundaries
+    Dffits_tmp$R_grense <- 2
+    Dffits_tmp$G_grense <- 2 * sqrt(1/nrow(s_tmp))
+
+    #Select extreme values to show
+    cond <- abs(Dffits_tmp$R) > Dffits_tmp$R_grense | abs(Dffits_tmp$G) > Dffits_tmp$G_grense
+    cond[is.na(cond)] <- TRUE # Include observations with NA values for R and G
+    Dffits_tmp <- Dffits_tmp[cond, ]
+    if (nrow(Dffits_tmp) == 0) { break }
+
+    # Add in estimate with and without extreme value
+    Dffits_tmp$y_est_with <- T_h$T_est[i]
+
+    for (j in 1:nrow(Dffits_tmp)){
+      mm <- match(Dffits_tmp[j, id], s_tmp[, id])
+      mod_ex <- lm(form, data = s_tmp[-mm, ], weights = vekt_tmp[-mm])
+      Dffits_tmp$y_est_without[j] <- X_h * mod_ex$coefficients
+    }
+
+    # Add together
     Dffits <- rbind(Dffits, Dffits_tmp)
+    }
   }
-  list(T_h = T_h[order(T_h$stratum), ], Dffits = Dffits[-1, ][order(-Dffits$G),])
+
+  # Add in group totals and CV estimates
+  if (!is.null(groups)){
+    group_dt <- data.frame(group_navn = NA, group = NA, T_est = NA, Var_est = NA, CV2 = NA)
+    for (g in 1:length(groups)){
+
+      # add group name to dataframe
+      grp_tmp <- unique(sample[, groups[g]])
+
+      # Create vector for group for strata in T_h dataset
+      group_convert <- unique(sample[, c(stratum, groups[g])])
+      m_strat <- match(T_h[, stratum], group_convert[, stratum])
+      Th_grp <- group_convert[m_strat, groups[g]]
+
+      # Sum variance and totals in each group
+      for (s in 1:length(grp_tmp)){
+
+        T_est <- sum(T_h$T_est[grp_tmp[s] == Th_grp])
+        Var_est <- sum(T_h$VAR[grp_tmp[s] == Th_grp])
+        CV2 <- sqrt(Var_est)/T_est * 100
+        dt_tmp <- data.frame(group_navn = groups[g], group = grp_tmp[s],
+                             T_est=T_est, Var_est=Var_est, CV2=CV2)
+
+        group_dt <- rbind(group_dt,dt_tmp)
+      }
+    }
+  }
+  if (calc_dffits){
+    Dffits <- Dffits[-1, ]
+    Dffits <- Dffits[order(Dffits$G, decreasing = T),]
+    row.names(Dffits) <- NULL
+  }
+
+  # return list with everything
+  if (calc_dffits){
+    return(list(T_h = T_h[order(T_h$stratum), ],
+         Dffits = Dffits,
+         Grp = group_dt[-1, ])
+    )
+  } else {
+    return(list(T_h = T_h[order(T_h$stratum), ],
+                Grp = group_dt[-1, ]))
+  }
+
+
 }
 
 
@@ -136,11 +217,17 @@ rate_model <- function(
 var_norm <- function(pop,            # populasjon
                      sample,         # utvalg
                      x,              # forklaringsvariabel
+                     y,
                      sigma,          # estimate of sigma from model
                      model_type = "rate",
                      var_type = "normal"){
+  # filter out those without ei - test only
+  sample_tmp <- sample[!is.na(sample[, y]), ]
 
-  Xs <- sum(sample[, x])
+
+  #Xs <- sum(sample[, x])
+  Xs <- sum(sample_tmp[, x])
+
   X <- sum(pop[, x])
   X^2 * ((X-Xs))/X * (sigma ^2) /Xs
 }
@@ -152,7 +239,7 @@ var_norm <- function(pop,            # populasjon
 #' @param sample
 #' @param id
 #' @param x
-#' @param ei
+#' @param mod
 #' @param model_type
 #' @param var_type
 #'
@@ -163,26 +250,32 @@ robust_var <- function(pop,            # populasjon
                     sample,         # utvalg
                     id,             # identifisering variable
                     x,              # forklaringsvariabel
-                    ei,             # resuduals
+                    mod,             # residuals
                     model_type = "rate",
                     var_type = "cv2"){
-  # Calculate a_i
-  Xr <- sum(pop[!(pop[, id] %in% sample[, id]), x])
+
+  # residuals
+  ei <- mod$residuals
+
+  # Calculate a_i - x's are the same in pop and sample files given
   Xs <- sum(sample[, x])
+  Xr <- sum(pop[, x]) - Xs
   ai <- Xr/Xs
 
   # Calculate leverage (h_i)
-  hi <- sample[, x]/Xs
+  hi <-  hatvalues(mod)
 
-  # Calculate di
-  di <- ei^2 /(1-hi)
+  # Calculate di variations
+  di_1 <- ei^2
+  di_2 <- ei^2 /(1-hi)
+  di_3 <- ei^2 /((1-hi)^2)
 
-  # Calculate two variance components
-  V_T_est <- sum(ai^2 * di)
-  V_T <- sum(di) * Xr/Xs
+  # Calculate variances as sum of the two components
+  V1 <- sum(ai^2 * di_1) + sum(di_1) * Xr/Xs
+  V2 <- sum(ai^2 * di_2) + sum(di_2) * Xr/Xs
+  V3 <- sum(ai^2 * di_3) + sum(di_3) * Xr/Xs
 
-  # Return sum of variance
-  V_T_est + V_T
+  list(V1=V1, V2=V2, V3=V3)
 
 }
 
@@ -197,7 +290,7 @@ robust_var <- function(pop,            # populasjon
 #' @return
 #'
 #' @examples
-model_diag <- function(pop, samp, x, y, h_i){
+model_diag_old <- function(pop, samp, x, y, h_i){
 
   # create formula here - struggled to pass in. perhaps change tocollect from mod
   form <- as.formula(paste(y, "~", x, "-1"))
@@ -225,5 +318,20 @@ model_diag <- function(pop, samp, x, y, h_i){
 
   # return lists
   list(H = h_i, R = r_i, G=G)
+}
+
+#' Title
+#'
+#' @param mod
+#'
+#' @return
+#' @export
+#'
+#' @examples
+model_diag <- function(mod){
+  r_i <- rstudent(mod)
+  h_i <- hatvalues(mod)
+  G <- dffits(mod)
+  list(H = h_i, R = r_i, G = G)
 }
 
