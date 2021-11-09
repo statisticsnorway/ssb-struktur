@@ -127,7 +127,7 @@ rate_model <- function(
 
     if (calc_dffits){
     # calculate and add G/DFFITS values
-    diagnostics <- model_diag(pop_tmp, s_tmp, x, y, mod_tmp)
+    diagnostics <- model_diag(mod_tmp)
     Dffits_tmp$R <- diagnostics$R
     Dffits_tmp$G <- diagnostics$G
 
