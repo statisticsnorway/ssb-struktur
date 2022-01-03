@@ -58,8 +58,7 @@ rate_model <- function(
     stop("Not all strata were the same in the population file and sample file.")
   }
   strata_n <- length(strata_levels)
-<<<<<<< HEAD
-=======
+
   T_h <- data.frame(stratum = rep(NA, strata_n),
                     N_pop = vector(mode = "numeric", length = strata_n),
                     X_pop = vector(mode = "numeric", length = strata_n),
@@ -80,7 +79,7 @@ rate_model <- function(
                          R = NA, G = NA, R_grense = NA, G_grense = NA,
                          y_est_with = NA, y_est_without = NA)
   }
->>>>>>> 7b0ede2afb54db1d5080c3a768175b6bce9ecac5
+
 
   # Set up variable names - TO DO LATER: add in for each y
   y_N <- paste(y, "pop", sep = "_")
