@@ -1,4 +1,9 @@
+# R project and history files
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
