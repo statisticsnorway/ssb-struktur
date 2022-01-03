@@ -372,7 +372,8 @@ plot_cv <- function(data, y){
     gather(CV, value, eval(CV1):eval(CV3)) %>%
     ggplot(aes(stratum, value, fill = CV)) +
     geom_bar(stat = "identity", position='dodge') +
-    scale_x_discrete(guide = guide_axis(angle = 90))
+    scale_x_discrete(guide = guide_axis(angle = 90)) +
+    ylab("CV value (%)") +
 
 }
 #plot_cv(resultene, y)
@@ -433,7 +434,8 @@ plot_extreme <- function(data, id, y, num = 10, type = "G", ylim = NULL) {
       ggplot(aes(.ID, estimate, fill = exclude)) +
       geom_bar(stat = "identity", position='dodge') +
       scale_fill_discrete(name = "Include/exclude observation",
-                          labels = c("exclude", "include"))
+                          labels = c("include", "exclude")) +
+      ylab("Stratum estimate")
   }
   p
 }
