@@ -351,29 +351,32 @@ get_extreme <- function(data, id, x, y, stratum){
 }
 #extreme <- get_extreme(data, id, x, y, stratum)
 
+
 #' Plot CVs
 #' Plot comparison of the different robust estimations of the CVs
 #'
-#' @param results output from get_results() function
-#' @param y name of the statistic vaiable
+#' @param data Data which is the output from get_results() function
+#' @param y Name of the statistic variable
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_cv <- function(results, y){
+plot_cv <- function(data, y){
   #variables
   CV1 <- paste(y, "CV1", sep = "_")
   CV3 <- paste(y, "CV3", sep = "_")
 
   # plot
-  resultene %>%
+  data %>%
     gather(CV, value, eval(CV1):eval(CV3)) %>%
     ggplot(aes(stratum, value, fill = CV)) +
-    geom_bar(stat = "identity", position='dodge')
+    geom_bar(stat = "identity", position='dodge') +
+    scale_x_discrete(guide = guide_axis(angle = 90))
 
 }
 #plot_cv(resultene, y)
+
 
 #' Plot extreme values
 #' Plot comparison of the different extreme values using G-values or estimate comparisons.
@@ -382,14 +385,13 @@ plot_cv <- function(results, y){
 #' @param id Name of identification variable as a string. Should be same in sample and data dataframes.
 #' @param y Name of the statistic variable
 #' @param num The number of outlier units to show. Default is 10.
-#' @param type The type of plot to show. 'G' output a plot of the G values compared to the boundary, type 'estimate' gives a comparison in stratum estimates with and without the observation
+#' @param type The type of plot to show. 'G' output a plot of the G values compared to the boundary, type 'estimate' gives a comparison in stratum estimates with and without the observation.
+#' @param ylim The upper limit to show in the plot.
 #'
 #' @return
 #' @export
-#'
-#' @examples
-plot_extreme <- function(data, id, y, num = 10, type = "G"){
-  if (!type %in% c("G", "estimate")){
+plot_extreme <- function(data, id, y, num = 10, type = "G", ylim = NULL) {
+  if (!type %in% c("G", "estimate")) {
     stop("Type must be 'G' or 'estimate'")
   }
 
@@ -398,11 +400,18 @@ plot_extreme <- function(data, id, y, num = 10, type = "G"){
   y_g <- paste(y, "G", sep = "_")
   y_gg <- paste(y, "G_grense", sep = "_")
 
-  # set plot window
-  options(repr.plot.width=12, repr.plot.height=8)
-  dev.new(height = 8, width = 12)
+  # open new plot window if running RStudio
+  if (Sys.getenv("RSTUDIO") == "1"){
+    options(repr.plot.width = 12, repr.plot.height = 8)
+    dev.new(height = 8, width = 12)
+  }
 
-  if(type == "G"){
+
+  if (type == "G") {
+    if (is.null(ylim)) {
+      ylim <- max(data[, y_g], na.rm = T)
+    }
+
     p <- extr %>%
       ggplot(aes(x=.ID)) +
       geom_col(aes_string(y=y_g)) +
@@ -412,9 +421,13 @@ plot_extreme <- function(data, id, y, num = 10, type = "G"){
       xlab("ID") +
       ylab("G value") +
       scale_color_manual(labels = "G boundary", values =  "red") +
-      theme(legend.title=element_blank())
+      coord_cartesian(ylim = c(0, ylim)) +
+      theme(legend.title = element_blank()) +
+      scale_x_discrete(guide = guide_axis(angle = 90))
 
-  } else if(type == "estimate"){
+  } else if (type == "estimate") {
+    y_est <- paste(y, "est", sep = "_")
+    y_est_ex <- paste(y, "est_ex", sep = "_")
     p <- extr %>%
       gather(exclude, estimate, eval(y_est):eval(y_est_ex)) %>%
       ggplot(aes(.ID, estimate, fill = exclude)) +
