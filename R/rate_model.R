@@ -73,13 +73,6 @@ rate_model <- function(
                     CV3 = vector(mode = "numeric", length = strata_n)
   )
 
-  # Set up Dffits data frame
-  if (calc_dffits){
-    Dffits <- data.frame(id = NA, stratum = NA, x = NA, y = NA, N_utv = NA,
-                         R = NA, G = NA, R_grense = NA, G_grense = NA,
-                         y_est_with = NA, y_est_without = NA)
-  }
-
 
   # Set up variable names - TO DO LATER: add in for each y
   y_N <- paste(y, "pop", sep = "_")
