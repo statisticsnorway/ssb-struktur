@@ -373,10 +373,10 @@ plot_cv <- function(data, y){
     ggplot(aes(stratum, value, fill = CV)) +
     geom_bar(stat = "identity", position='dodge') +
     scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("CV value (%)") +
+    ylab("CV value (%)")
 
 }
-#plot_cv(resultene, y)
+# plot_cv(resultene, y)
 
 
 #' Plot extreme values
