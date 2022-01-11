@@ -5,15 +5,19 @@
 \alias{sample_data}
 \title{Sample test data}
 \format{
-A data frame with 1000 rows and  variables:
+A data frame with 1000 rows and variables:
 \describe{
   \item{id}{Identification variable}
   \item{employees}{Number of employees}
+  \item{employees_f}{Number of female employees}
+  \item{employees_m}{Number of male employees}
   \item{turnover}{Amount of turnover of the company (in 000 NOK)}
   \item{size}{Category size of the company in terms of turnover (small, mid, big)}
   \item{industry_group}{The activity group for which the business works in}
   \item{job_vacancies}{The number of job vacancies in the company.}
   \item{sick_days}{The number of sick leave days recorded for the company.}
+  \item{sick_days_f}{The number of sick leave days recorded for female employees for the company.}
+  \item{sick_days_m}{The number of sick leave days recorded for male employees for the company.}
 }
 }
 \usage{

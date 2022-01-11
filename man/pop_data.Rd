@@ -5,10 +5,12 @@
 \alias{pop_data}
 \title{Population test data}
 \format{
-A data frame with 10000 rows and 5 variables:
+A data frame with 10000 rows and 7 variables:
 \describe{
   \item{id}{identification variable}
   \item{employees}{number of employees}
+  \item{employees_f}{number of female employees}
+  \item{employees_m}{number of male employees}
   \item{turnover}{amount of turnover of the company in NOK}
   \item{size}{category size of the company in terms of turnover (small, mid, large)}
   \item{industry_group}{the activity group for which the business works in}

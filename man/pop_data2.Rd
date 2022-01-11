@@ -9,6 +9,8 @@ A data frame with 10000 rows and 5 variables:
 \describe{
   \item{id}{Identification variable}
   \item{employees}{Number of employees}
+  \item{employees_f}{number of female employees}
+  \item{employees_m}{number of male employees}
   \item{turnover}{Amount of turnover of the company (in 000 NOK)}
   \item{size}{Category size of the company in terms of turnover (small, mid, large)}
   \item{industry_group}{The activity group for which the business works in.}
