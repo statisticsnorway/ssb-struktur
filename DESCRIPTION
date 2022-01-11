@@ -1,7 +1,7 @@
 Package: struktuR
 Type: Package
 Title: Estimation For Structure Statistics
-Version: 0.1.1
+Version: 0.1.2
 Author: Susie Jentoft
 Maintainer: Susie Jentoft <susie.jentoft@ssb.no>
 Description: Estimation of totals within strata and groups using a 
