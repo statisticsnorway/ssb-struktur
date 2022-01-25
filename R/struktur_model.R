@@ -20,6 +20,12 @@ struktur_model <- function(
   strata,
   method = "rate"
   ){
+  
+  # Check y is in the data sets
+  if (!y %in% c(names(data), names(sample_data))){
+    stop(paste0("The variable ", y, " could not be found in the data sets." ))
+  }
+  
 
   # need to set up sample data frame if no data is given - TO DO LATER: set up for multiple y's
   if (is.null(sample_data)){
@@ -166,24 +172,31 @@ struktur_model <- function(
 
   }
   data[, y_imp] <- data[, x] * data[, y_beta]
+  
+  # label id and strata variable for later identification
+  var_labels = c(strata="Stratification variable", id="Identification variable")
+  Hmisc::label(data) = as.list(var_labels[match(names(data), c(strata, id))])
 
   return(data)
 }
 
 
-#' Get formatted results
+#' Get strata results
 #' Get a table for results in each stratum for a rate model
 #'
 #' @param data Population data frame with additional variables from rate_model output
 #' @param x Name of the explanatory variable
-#' @param y Name of the statistic vaiable
-#' @param strata Name of the strata variable
+#' @param y Name of the statistic variable
+#' @param strata Name of the stratification variable
 #'
 #' @return
 #' @export
 #'
-get_results <- function(data, x, y, strata){
-
+get_strata_results <- function(data, x=NULL, y=NULL, strata=NULL){
+  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(x)) x <- get_var(data, "x")
+  if (is.null(y)) y <- get_var(data, "y")
+      
   strata_levels <- unique(data[, strata])
   strata_n <- length(strata_levels)
 
@@ -240,9 +253,9 @@ get_results <- function(data, x, y, strata){
 }
 
 
-#### Get groups ####
-#' Get group estimates
-#' Get estimates for group from rate model output
+#### Get estimates for strata/group ####
+#' Get estimates
+#' Get estimates for groups (or strata) from rate model output
 #'
 #' @param data Population data frame with additional variables from rate_model output
 #' @param x Name of the explanatory variable.
@@ -253,12 +266,21 @@ get_results <- function(data, x, y, strata){
 #' @return
 #' @export
 #'
-get_groups <- function(data, x, y, strata, group){
+get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
+  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(x)) x <- get_var(data, "x")
+  if (is.null(y)) y <- get_var(data, "y")
+  if (is.null(group)) group <- strata
+  
   # create sample
   sample_data <- data[!is.na(data[, y]), ]
 
   # Get strata results
-  resultene <- get_results(data, x, y, strata)
+  resultene <- get_strata_results(data, x, y, strata)
+  
+  if (group == strata) {
+    return(resultene)
+  }
 
   # set up variable names - prep for multiple y's
   y_est <- paste(y, "est", sep="_")
@@ -282,7 +304,7 @@ get_groups <- function(data, x, y, strata, group){
     # Sum variance and totals in each group
     for (s in 1:length(grp_tmp)){
       # set up data
-      dt_tmp <- data.frame(group_navn = group[g], group = grp_tmp[s])
+      dt_tmp <- data.frame(group_name = group[g], group = grp_tmp[s])
 
       # Get group estimate, variance and cv
       dt_tmp[, y_est] <- sum(resultene[, y_est][grp_tmp[s] == Th_grp])
@@ -346,7 +368,12 @@ robust_var <- function(x_pop,           # populasjon
 #'
 #' @return
 #' @export
-get_extremes <- function(data, id, x, y, strata, na_rm = TRUE){
+get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRUE){
+  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(id)) id <- get_var(data, "id")
+  if (is.null(x)) x <- get_var(data, "x")
+  if (is.null(y)) y <- get_var(data, "y")
+  
   # create sample
   sample_data <- data[!is.na(data[, y]), ]
 
@@ -407,12 +434,16 @@ get_extremes <- function(data, id, x, y, strata, na_rm = TRUE){
 #' @return
 #' @export
 plot_cv <- function(data, y, strata){
+  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(x)) x <- get_var(data, "x")
+  if (is.null(y)) y <- get_var(data, "est")[1] # just plot first one for time being
+  
   #variables
   CV1 <- paste(y, "CV1", sep = "_")
   CV3 <- paste(y, "CV3", sep = "_")
 
   if (!CV1 %in% names(data)){
-    stop("CV calculations were not found in dataset. Please run mian function 'struktur_model' first.")
+    stop("CV calculations were not found in dataset. Please run main function 'struktur_model' first.")
   }
 
   # plot
@@ -430,19 +461,22 @@ plot_cv <- function(data, y, strata){
 #' Plot comparison of the different extreme values using G-values or estimate comparisons.
 #'
 #' @param data Data frame output from get_extreme() function
-#' @param id Name of identification variable as a string. Should be same in sample and data dataframes.
-#' @param y Name of the statistic variable
+#' @param id Name of identification variable as a string.
+#' @param y Name of the statistic variable.
 #' @param size The number of outlier units to show. Default is 10.
 #' @param type The type of plot to show. 'G' output a plot of the G values compared to the boundary, type 'estimate' gives a comparison in strata estimates with and without the observation.
 #' @param ylim The upper limit to show in the plot.
 #'
 #' @return
 #' @export
-plot_extreme <- function(data, id, y, size = 10, type = "G", ylim = NULL) {
+plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim = NULL) {
   if (!type %in% c("G", "estimate")) {
     stop("Type must be 'G' or 'estimate'")
   }
-
+  
+  if (is.null(id)) id <- get_var(data, "id")
+  if (is.null(y)) y <- get_var(data, "y")
+  
   extr <- data[1:size, ]
   extr$.ID <- factor(extr[, id], levels = extr[, id])
   y_g <- paste(y, "G", sep = "_")
@@ -486,3 +520,31 @@ plot_extreme <- function(data, id, y, size = 10, type = "G", ylim = NULL) {
   p
 }
 
+#' Get variable names
+#' @param data Data frame to find variables in
+#' @param var Variable to find. Can be 'x', 'y', 'id' or 'strata'
+#' 
+#' @return
+get_var <- function(data, var){
+  if (var == "y"){
+    i <- grepl('_rstud', names(data), fixed = T)
+    return(gsub('_rstud', '', names(data)[i]))
+  } 
+  if (var == "x"){
+    .y <- get_var(data, "y")
+    i <- grepl('_utv', names(data), fixed = T)
+    .all <- gsub('_utv', '', names(data)[i])
+    return(.all[!.all %in% .y])
+  }
+  if (var = "est"){
+    i <- grepl('_est', names(data), fixed = T)
+    return(gsub('_est', '', names(data)[i]))
+  }
+  
+  if (var == "id") label.name <- "Identification variable"
+  if (var == "strata") label.name <- "Stratification variable"
+  i <- match(label.name, Hmisc::label(data))
+  
+  return(names(data)[i])
+
+}
