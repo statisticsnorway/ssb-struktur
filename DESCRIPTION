@@ -7,11 +7,14 @@ Maintainer: Susie Jentoft <susie.jentoft@ssb.no>
 Description: Estimation of totals within strata and groups using a 
   rate model. Variance and coefficient of variations are estimated using
   robust variance estimation.
-Imports: MASS, ggplot2
+Imports: MASS, ggplot2, Hmisc
 License: Apache 2.0
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
 Suggests: 
+    rmarkdown,
+    knitr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr
