@@ -19,7 +19,7 @@ pop_data$industry <- rep(c("B", "C", "D", "E", "F"), each = 2000)
 
 # create some problems for testing
 pop_data[1, c("employees", "employees_f", "employees_m")] <- 0
-pop_data[2, c("employees", "employees_f", "employees_m")] <- NA
+#pop_data[2, c("employees", "employees_f", "employees_m")] <- NA
 
 save(pop_data, version=2, file = "data/pop_data.RData")
 
