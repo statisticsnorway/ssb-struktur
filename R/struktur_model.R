@@ -440,19 +440,27 @@ plot_cv <- function(data, y, strata){
   
   #variables
   CV1 <- paste(y, "CV1", sep = "_")
+  CV2 <- paste(y, "CV2", sep = "_")
   CV3 <- paste(y, "CV3", sep = "_")
 
   if (!CV1 %in% names(data)){
     stop("CV calculations were not found in dataset. Please run main function 'struktur_model' first.")
   }
 
+  # Data needs to be in long format for ggplot
+  data_long <- rbind(data, data, data)
+  data_long <- data_long[, -match(c(CV1, CV2, CV3), names(data_long))]
+  cv_all <- stack(list(cv1 = as.vector(data[, CV1]), 
+                       cv2 = as.vector(data[, CV2]), 
+                       cv3 = as.vector(data[, CV3])))
+  data_long$CV_type <- cv_all$ind
+  data_long$CV <- cv_all$values
+  
   # plot
-  data %>%
-    gather(CV, value, eval(CV1):eval(CV3)) %>%
-    ggplot(aes_string(strata, "value", fill = "CV")) +
-    geom_bar(stat = "identity", position='dodge') +
-    scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("CV value (%)")
+  ggplot(data_long, aes_string(strata, "CV", fill = "CV_type")) +
+  geom_bar(stat = "identity", position='dodge') +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
+  ylab("CV value (%)")
 
 }
 
@@ -493,13 +501,12 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
       ylim <- max(data[, y_g], na.rm = T)
     }
 
-    p <- extr %>%
-      ggplot(aes(x=.ID)) +
+    p <- ggplot(extr, aes(x=.ID)) +
       geom_col(aes_string(y=y_g)) +
       geom_segment(aes_string(x = (1:size) -0.5, xend = (1:size) + 0.5,
                               y = y_gg, yend = y_gg,
                               color = "'red'")) +
-      xlab("ID") +
+      xlab(id) +
       ylab("G value") +
       scale_color_manual(labels = "G boundary", values =  "red") +
       coord_cartesian(ylim = c(0, ylim)) +
@@ -509,13 +516,22 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
   } else if (type == "estimate") {
     y_est <- paste(y, "est", sep = "_")
     y_est_ex <- paste(y, "est_ex", sep = "_")
-    p <- extr %>%
-      gather(exclude, estimate, eval(y_est):eval(y_est_ex)) %>%
-      ggplot(aes(.ID, estimate, fill = exclude)) +
+    
+    # Data needs to be in long format
+    
+    include_all <- stack(list(include = as.vector(extr[, y_est]), 
+                         exclude = as.vector(extr[, y_est_ex])))
+    extr_long <- rbind(extr, extr)
+    extr_long$.estimate <- include_all$values
+    extr_long$.exclude <- include_all$ind
+    #p <- extr %>%
+    #  gather(exclude, estimate, eval(y_est):eval(y_est_ex))# %>%
+    p <- ggplot(extr_long, aes(.ID, .estimate, fill = .exclude)) +
       geom_bar(stat = "identity", position='dodge') +
       scale_fill_discrete(name = "Include/exclude observation",
                           labels = c("include", "exclude")) +
-      ylab("strata estimate")
+      ylab("strata estimate") + 
+      xlab(id)
   }
   p
 }
@@ -527,7 +543,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
 #' @return
 get_var <- function(data, var){
   if (var == "y"){
-    i <- grepl('_rstud', names(data), fixed = T)
+    i <- endsWith(names(data), '_rstud')
     return(gsub('_rstud', '', names(data)[i]))
   } 
   if (var == "x"){
@@ -536,7 +552,7 @@ get_var <- function(data, var){
     .all <- gsub('_utv', '', names(data)[i])
     return(.all[!.all %in% .y])
   }
-  if (var = "est"){
+  if (var == "est"){
     i <- grepl('_est', names(data), fixed = T)
     return(gsub('_est', '', names(data)[i]))
   }
