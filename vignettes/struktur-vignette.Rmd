@@ -1,0 +1,230 @@
+---
+title: "Estimation using struktuR"
+author: "Susie Jentoft"
+date: "18.01.2022"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{struktur-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+### Introduction
+The `struktuR` package is used to estimate totals and their uncertainty from sample survey data, with particular focus on business surveys. It contains functions which replicates and builds on the estimation and functionality used in Statistic Norway's internally developed SAS-application Struktur ([Using SAS-Struktur](https://www.ssb.no/a/publikasjoner/pdf/notat_200730/notat_200730.pdf), Norsk). Documentation on this earlier application will be referenced here to aid those wishing to move their statistical production (or parts of it) to R.
+
+The main purpose of the functions is to:
+
+* Estimate totals for statistic variables for the country and within strata and groups.
+* Provide estimations for variance to indicate the quality of the estimated totals.
+* Identify outlier observations that may be having a overly high influence on the statistics.
+
+The estimation method is a model-based estimate using a **homogenous**, **rate** or **regression** model. These are described further in more details later in this document.  
+
+
+```{r, include = FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+library(knitr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Package installation
+For internal Statistic Norway users, the package is already installed on many of the production servers and this step may be skipped. For other users the package can be installed from github using the `devtools` function `install_github`
+
+```{r install, eval=FALSE}
+devtools::install_github("statisticsnorway/struktuR")
+```
+
+This step only needs to be run one time. To access and use the functions in the package we need to run `library` each time we start a new R session.
+
+```{r}
+library(struktuR)
+```
+
+
+### Data requirements
+The purpose of the functions used for estimation is to take information from a sample of units (for example a sample of companies) and make inferences on the remaining units in the population to find an estimation for the total. For this we need data on both the *sample* and *population*. This can be two separate data sets or one full/population data set with information on the statistics variable for those units in the sample. When there are two data sets, the following should variables should be included:
+
+**Population data set**:
+
+* ID variable which is consistent in both the population and sample data sets (`id`).
+* An explanatory variable when using regression and rate models (`x`). This is a variable which the statistic variable is correlated with.
+* A strata variable which divides the population into groups which are similar to eachother.
+* Domain variables for producing statistical totals for. These should be larger groups than the strata variable (`group`).
+ 
+**Sample data set**:
+
+* ID variable (`id`)
+* The explanatory variable when using regression and rate models, but can be missing (`x`)
+* The statistic variable(s) we are interested in estimating (`y`)
+
+#### Example data
+There are two synthetic data sets in the package for examples: pop_data, sample_data. `pop_data` represents a population data set with 10000 rows, each one representing a company. The variable `employees` is the number of employees in the company and provides an explanatory variable used in many of Statistic Norway's current estimation models. Variables `emplyees_f` and `employees_m` give the breakdown for number of male and female employees. `Turnover` provides an alternative explanatory variable. Variables `size` and `industry` providing options for stratification. 
+
+```{r, eval = F}
+head(pop_data)
+```
+
+```{r, echo = F}
+kable(head(pop_data))
+```
+
+The data set `sample_data` contains 1000 rows representing a sample of companies. In addition to the variables listed previously it contains a `job_vacancies` representing the number of job positions advertised for the year as an example statistic variable. Variables `sick_days`, `sick_days_f` and `sick_days_m` give addition statistic variables for the number of days lost to sick leave, broken down into male and female.
+
+```{r, eval = F}
+head(sample_data)
+```
+
+```{r, echo = F}
+kable(head(sample_data))
+```
+
+
+### Model choice
+The main function for estimation in the R package is called `struktur_model` and uses the parameter `method` to define the model of choice. The default setting is set to run a **rate** model but can also be a **homogenous** or **regression** model. This is similar to the choice given in the SAS-Struktur application
+
+![](model.PNG)
+
+A **homogenous** model is useful when there are no available additional variables that are correlated with the statistics variable. A **rate** model is used when there is one variable available for all units in the population which has a good correlation with the statistics variable. A **regression** model can also be used when there is a variable available in the population but can also be adapted for cases with multiple explanatory variables. It also has an assumption that the residuals in the model are not related to the explanatory variables. 
+
+The `struktuR` package currently only supports the use of a **rate** model for estimation. Contact Statistic's Norway's Methods department if you wish to test either of the other models.
+
+#### Rate model
+A rate model can be described with the general formula: 
+$$
+y_{hi} = \beta_{h}x_{hi} + \epsilon_{hi}
+$$
+where $i = 1, 2, ..., N_h$ and is the units in the sample in the stratum, $h$, $y$ is the statistics variable available in the sample and $x$ is the explanatory variable.
+
+For a rate model, the distribution of the error term, or residuals, is assumed to correlate with the explanatory variable, $x$. Thereby
+$$
+Var(\epsilon_{hi})= x_{hi}\sigma_h^2
+$$
+An easy way to see if a rate model might be a good choice, is to start with plotting the statistics variable against the explanatory variable. If there appears to be a linear pattern, but the points vary more from the linear correlation when they themselves are larger it will result in a funnel type shape. This can be seen in the example:  
+```{r, echo = FALSE, fig.height=3, fig.width=6}
+library(ggplot2)
+set.seed(2022)
+residdata <- data.frame(x = runif(50)*100)
+residdata$y = residdata$x * 10 + residdata$x * runif(50, min = -5, max = 5)
+ggplot(residdata, aes(x, y)) + 
+  geom_point() +
+  geom_smooth(method='lm', formula='y~x-1', se = FALSE)
+
+```
+
+Another difference is that rate models do not have an intercept term whereas regression models often do. This means that when the explanatory variable (`x`) is 0, then it should make sense for the statistic variable (`y`) to also be 0. 
+
+### Estimation
+The main function, `struktur_model` is used to perform the modeling and estimation. This function will fit the chosen model within strata groups then predict it for the population as a whole. The population and sample dataset must be provided, along with explanatory variable, statistic variable(s), id and strata variables.
+
+```{r, message=FALSE, eval = F}
+results <- struktur_model(pop_data, sample_data, 
+                          x = "employees", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = "industry")
+head(results)
+```
+
+
+```{r, message=FALSE, echo = F}
+results <- struktur_model(pop_data, sample_data, 
+                          x = "employees", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = "industry")
+kable(head(results))
+```
+
+The result is a population dataset with added columns. It acts as a mass-imputed file where totals and variances can be calculated from.
+
+The general explanatory, `x`, variables added include:
+
+- `employees_utv` gives the sum of the explanatory (employees) for the stratum in the sample.
+- `employees_pop` gives the sum of the explanatory (employees) for the stratum in the population.
+
+The prefix *employees* will be replaced with the name of the explanatory variable chosen.
+
+Statistic variables added include:
+
+- `job_vacancies_utv` gives the count/number of observations in the sample for the stratum.
+- `job_vacancies_pop` gives the count/number of observations in the population for the stratum.
+- `job_vacancies_beta` gives the estimate of the $\beta$ value from the model for the stratum.
+- `job_vacancies_ex` gives the estimate of the $\beta$ value from the model for the stratum if that specific observation is removed from the model.
+- `job_vacancies_rstud`, `job_vacancies_hat`, `job_vacancies_G` provide the studentized residuals, hat values and G-value used for identifying outlier and calculating variances
+- `job_vacancies_imp` provides the model based imputation for the statistic variable.
+
+#### View results and uncertainty
+Add in here ...
+```{r, eval = F}
+results_table <- get_results(results, x = "employees", y = "job_vacancies", strata = "industry")
+results_table
+```
+
+
+```{r, echo = F}
+results_table = get_results(results, x = "employees", y = "job_vacancies", strata = "industry")
+kable(head(results_table))
+```
+
+
+```{r, fig.width = 7}
+library(tidyverse) # take out when removed gather and %>%
+plot_cv(results_table, y = "job_vacancies", strata = "industry")
+```
+
+
+#### View domain estimations
+We generally don't publish statistics at the strata-level. This is usually most useful for the modeling/estimation process. To view results for total estimates and uncertainty we can use the `get_groups` function. For example to view results for the entire population/country level and industry levels:
+
+```{r, eval = F}
+results$country <- 1
+get_groups(results, 
+              x = "employees", 
+              y = "job_vacancies", 
+              strata = "industry", 
+              group = c("country", "industry"))
+```
+
+```{r, echo = F}
+results$country <- 1
+gg <- get_groups(results, 
+              x = "employees", 
+              y = "job_vacancies", 
+              strata = "industry", 
+              group = c("country", "industry"))
+kable(gg)
+```
+
+
+#### View outliers
+Create a table with `get_extremes`
+Add more in here ...
+
+```{r, eval = F}
+outliers <- get_extremes(data = results, id = "id", x = "employees", y = "job_vacancies", strata = "industry")
+head(outliers)
+```
+
+```{r, echo = F}
+outliers <- get_extremes(results, id = "id", x = "employees", y = "job_vacancies", strata = "industry")
+kable(head(outliers))
+```
+
+
+View outliers with the function `plot_extreme`
+
+Add in more here. Plots not showing .... 
+```{r, fig.width = 7, eval = T}
+plot_extreme(outliers, id = "id", y = "job_vacancies", type = "G")
+```
+
+```{r}
+library(tidyverse)
+plot_extreme(outliers, id = "id", y = "job_vacancies", type = "estimate")
+```
+
+
+
