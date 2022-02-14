@@ -78,6 +78,7 @@ struktur_model <- function(
 
   }
 
+
   # Check all in sample_data have y values. TO DO LATER: adjust for multiple y's.
   if(any(is.na(sample_data[, y]))){
     ynum <- sum(is.na(sample_data[, y]))
@@ -88,7 +89,7 @@ struktur_model <- function(
   sample_data <- sample_data[!is.na(sample_data[, y]),]
   }
 
-  # create formula adn weights
+  # create formula and weights
   form <- as.formula(paste(y, "~", x, "-1"))
   vekt <- 1/sample_data[, x]
 
@@ -116,6 +117,7 @@ struktur_model <- function(
   y_hat <- paste(y, "hat", sep = "_")
   y_G <- paste(y, "G", sep = "_")
   y_imp <- paste(y, "imp", sep = "_")
+  y_flag <- paste(y, "flag", sep = "_")
   x_pop <- paste(x, "pop", sep = "_")
   x_utv <- paste(x, "utv", sep = "_")
 
@@ -124,6 +126,8 @@ struktur_model <- function(
   # Add y into population file
   m <- match(data[, id], sample_data[, id])
   data[, y] <- sample_data[m, y]
+  data[ ,"s_flag"] <- ifelse(is.na(m), 0, 1)
+  
 
   # Add sums to population file
   m_strat <- match(data[, strata], sample_data[, strata])
@@ -138,6 +142,7 @@ struktur_model <- function(
   data[, y_rstud] <- NA
   data[, y_hat] <- NA
   data[, y_G] <- NA
+  data[, y_flag] <- "pred"
 
   # Run through estimation within each strata
   for(i in 1:strata_n){
@@ -169,9 +174,12 @@ struktur_model <- function(
       beta_ex <- c(beta_ex, mod_ex$coefficients)
     }
     data[m_id, y_beta_ex] <- beta_ex
-
+    data[m_id, y_flag] <- "mod"
   }
+  # Add in imputation values
   data[, y_imp] <- data[, x] * data[, y_beta]
+  
+  data[!is.na(results$y), y_imp]<- results$y[!is.na(results$y)]
   
   # label id and strata variable for later identification
   var_labels = c(strata="Stratification variable", id="Identification variable")
