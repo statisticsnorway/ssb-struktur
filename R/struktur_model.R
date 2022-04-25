@@ -1,4 +1,4 @@
-#' Run a Struktur model
+#' Run a struktur model
 #' Estimates total and uncertainty for a rate, homogeneous or regression model within strata.
 #'
 #' @param data Population data frame
@@ -11,10 +11,12 @@
 #' in the total with their observed values.
 #' @param method Model methods to use. Default is 'rate' for a rate model. Also 'homogen' and 'reg'
 #' for regression model will be available soon. 
+#' @param exclude A list of observations in the sample that should be excluded from the model. 
+#'   The observed values are included in the total estimate.
+#' @param method The type of the model to use.Default is "rate" 
 #'
 #' @return
 #' @export
-#'
 struktur_model <- function(
   data,
   sample_data = NULL,
@@ -23,7 +25,6 @@ struktur_model <- function(
   y,
   strata,
   exclude = NULL,
-  #g_exclude = NULL,
   method = "rate"
   ){
   
@@ -84,6 +85,7 @@ struktur_model <- function(
 
   }
 
+
   # Check all in sample_data have y values. TO DO LATER: adjust for multiple y's.
   if(any(is.na(sample_data[, y]))){
     ynum <- sum(is.na(sample_data[, y]))
@@ -122,6 +124,7 @@ struktur_model <- function(
   y_hat <- paste(y, "hat", sep = "_")
   y_G <- paste(y, "G", sep = "_")
   y_imp <- paste(y, "imp", sep = "_")
+  y_flag <- paste(y, "flag", sep = "_")
   x_pop <- paste(x, "pop", sep = "_")
   x_utv <- paste(x, "utv", sep = "_")
 
@@ -130,6 +133,7 @@ struktur_model <- function(
   # Add y into population file
   m <- match(data[, id], sample_data[, id])
   data[, y] <- sample_data[m, y]
+  data[ ,"s_flag"] <- ifelse(is.na(m), 0, 1)
   
   # Create .strata and surprise strata
   data[, ".strata"] <- data[, strata]
@@ -158,7 +162,7 @@ struktur_model <- function(
   data[, y_hat] <- NA
   data[, y_G] <- NA
   data[, y_imp] <- NA
-  
+  data[, y_flag] <- "pred"
 
   # Run through estimation within each strata
   for(i in 1:strata_n){
@@ -173,6 +177,13 @@ struktur_model <- function(
       data[m_tmp, y_imp] <- data[m_tmp, y]
     } else {
 
+    # create temporary data and weights for specific stratum
+    s_tmp <- sample_data[sample_data[, strata] == st, ]
+    
+    # remove excluded observations
+    s_ex <- s_tmp[s_tmp[, id] %in% exclude, ]
+    s_tmp <- s_tmp[!s_tmp[, id] %in% exclude, ]
+    
     # Create weights and fit model
     if (method == "rate"){
       vekt_tmp <- vekt[sample_data[, ".strata"] == st] #####
@@ -198,6 +209,16 @@ struktur_model <- function(
     data[m_tmp, y_imp] <- data[m_tmp, x] * data[m_tmp, y_beta]
   }
   }
+    
+    # Add in flags for in model or excluded form model
+    data[m_id, y_flag] <- "mod"
+    ex_id <- match(s_ex[, id] %in% exclude, data[, id])
+    data[ex_id, y_flag] <- "ex"
+  }
+  # Add in imputation values
+  data[, y_imp] <- data[, x] * data[, y_beta]
+  cond_flag <- data[, y_flag] %in% c("mod", "ex")
+  data[cond_flag, y_imp] <- data[cond_flag, y]
   
   # label id and strata variable for later identification
   var_labels = c(strata="Stratification variable", id="Identification variable")
