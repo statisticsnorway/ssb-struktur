@@ -105,6 +105,13 @@ struktur_model <- function(
     vekt[vekt == Inf] <- 1/(sample_data[, x_var]+1)
   }
   
+  # Add in strata variable
+  if (length(strata) > 1){
+    data[, ".strata"] <- apply(data[, strata ], 1, paste, collapse = "_")
+    sample_data[, ".strata"] <- apply(sample_data[, strata ], 1, paste, collapse = "_")
+    strata <- ".strata"
+  } 
+  
   # Check strata levels are the same in pop file and sample files
   strata_levels <- unique(data[, strata])
   strata_levels_utvalg <- unique(sample_data[, strata])
