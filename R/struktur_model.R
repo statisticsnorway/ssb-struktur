@@ -7,6 +7,10 @@
 #' @param x Name of the explanatory variable.
 #' @param y Name of the statistic variable.
 #' @param strata Name of the strata variable.
+#' @param exclude Vector of id numbers to exclude from the model. This observations will be included 
+#' in the total with their observed values.
+#' @param method Model methods to use. Default is 'rate' for a rate model. Also 'homogen' and 'reg'
+#' for regression model will be available soon. 
 #'
 #' @return
 #' @export
@@ -18,6 +22,8 @@ struktur_model <- function(
   x,
   y,
   strata,
+  exclude = NULL,
+  #g_exclude = NULL,
   method = "rate"
   ){
   
@@ -62,7 +68,7 @@ struktur_model <- function(
     }
     sample_data <- sample_data[!is.na(sample_data[, x]),]
   }
-
+  
   if (any(is.na(data[, x]))){
     cond <- is.na(data[, x])
     m <- match(data[cond, id], sample_data[, id])
@@ -88,7 +94,7 @@ struktur_model <- function(
   sample_data <- sample_data[!is.na(sample_data[, y]),]
   }
 
-  # create formula adn weights
+  # create formula and weights
   form <- as.formula(paste(y, "~", x, "-1"))
   vekt <- 1/sample_data[, x]
 
@@ -124,13 +130,26 @@ struktur_model <- function(
   # Add y into population file
   m <- match(data[, id], sample_data[, id])
   data[, y] <- sample_data[m, y]
+  
+  # Create .strata and surprise strata
+  data[, ".strata"] <- data[, strata]
+  sample_data[, ".strata"] <- sample_data[, strata]
+  
+  if (!is.null(exclude)){
+    m <- match(exclude, data[, id])
+    data[m, ".strata"] <- "surprise_strata"
+    strata_levels <- c(strata_levels, "surprise_strata")
+    strata_n <- strata_n + 1
+    m2 <- match(exclude, sample_data[, id])
+    sample_data[m2, ".strata"] <- "surprise_strata"
+  } 
 
   # Add sums to population file
-  m_strat <- match(data[, strata], sample_data[, strata])
-  data[x_pop] <- ave(data[, x], data[, strata], FUN = sum)
-  data[x_utv] <- ave(sample_data[, x], sample_data[, strata], FUN = sum)[m_strat]
-  data[y_N] <- ave(data[, y], data[, strata], FUN = length)
-  data[y_n] <- ave(sample_data[, y], sample_data[, strata], FUN = length)[m_strat]
+  m_strat <- match(data[, ".strata"], sample_data[, ".strata"])
+  data[x_pop] <- ave(data[, x], data[, ".strata"], FUN = sum)
+  data[x_utv] <- ave(sample_data[, x], sample_data[, ".strata"], FUN = sum)[m_strat]
+  data[y_N] <- ave(data[, y], data[, ".strata"], FUN = length)
+  data[y_n] <- ave(sample_data[, y], sample_data[, ".strata"], FUN = length)[m_strat]
 
   # Set up variables
   data[, y_beta] <- NA
@@ -138,22 +157,29 @@ struktur_model <- function(
   data[, y_rstud] <- NA
   data[, y_hat] <- NA
   data[, y_G] <- NA
+  data[, y_imp] <- NA
+  
 
   # Run through estimation within each strata
   for(i in 1:strata_n){
     st <- strata_levels[i]
+    m_tmp <- data[, ".strata"] == st
 
-    # create temporary data and weights for specific stratum
-    s_tmp <- sample_data[sample_data[, strata] == st, ]
+    # create temporary data for specific stratum
+    s_tmp <- sample_data[sample_data[, ".strata"] == st, ]
+    
+    # add columns if surprise stratum
+    if (st == "surprise_strata"){
+      data[m_tmp, y_imp] <- data[m_tmp, y]
+    } else {
 
     # Create weights and fit model
     if (method == "rate"){
-      vekt_tmp <- vekt[sample_data[, strata] == st]
+      vekt_tmp <- vekt[sample_data[, ".strata"] == st] #####
       mod_tmp <- lm(form, data = s_tmp, weights = vekt_tmp)
     }
 
     # Add beta est back to data
-    m_tmp <- data[, strata] == st
     data[m_tmp, y_beta] <- mod_tmp$coefficients
 
     # Individual hat, rstud and G values
@@ -169,9 +195,9 @@ struktur_model <- function(
       beta_ex <- c(beta_ex, mod_ex$coefficients)
     }
     data[m_id, y_beta_ex] <- beta_ex
-
+    data[m_tmp, y_imp] <- data[m_tmp, x] * data[m_tmp, y_beta]
   }
-  data[, y_imp] <- data[, x] * data[, y_beta]
+  }
   
   # label id and strata variable for later identification
   var_labels = c(strata="Stratification variable", id="Identification variable")
@@ -192,7 +218,7 @@ struktur_model <- function(
 #' @return
 #' @export
 #'
-get_strata_results <- function(data, x=NULL, y=NULL, strata=NULL){
+get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
   if (is.null(strata)) strata <- get_var(data, "strata")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
@@ -224,6 +250,13 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=NULL){
     st <- strata_levels[i]
     pop_tmp <- data[data[, strata] == st & is.na(data[, y]), ]
     s_tmp <- data[data[, strata] == st & !is.na(data[, y]), ]
+    
+    # check if fulltelling
+    if(nrow(pop_tmp) == 0){
+      T_h <- s_tmp[1, c(strata, x_pop, x_utv, y_pop, y_utv)]
+      T_h[, y_est] <- sum(s_tmp[, y])
+      T_h[,c(y_var, y_ub, y_lb, y_cv1, y_cv2, y_cv3)] <- NA
+    } else {
 
     # Get residuals
     resids <- s_tmp[, y] - s_tmp[, y_imp]
@@ -243,11 +276,17 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=NULL){
     T_h[, y_cv1] <- sqrt(var_tmp$V1)/T_h[, y_est] * 100
     T_h[, y_cv2] <- sqrt(var_tmp$V2)/T_h[, y_est] * 100
     T_h[, y_cv3] <- sqrt(var_tmp$V3)/T_h[, y_est] * 100
+    }
 
     # Combine with other results
     results_tab <- rbind(results_tab, T_h)
   }
   results_tab <- results_tab[order(results_tab[, strata]), ]
+  if ("surprise_strata" %in% results_tab[, strata]){
+    m <- match("surprise_strata", results_tab[, strata])
+    results_tab <- rbind(results_tab[order(results_tab[-m, strata]), ],
+                         results_tab[m, ])
+  }
   row.names(results_tab) <- NULL
   results_tab
 }
@@ -267,7 +306,10 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=NULL){
 #' @export
 #'
 get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
-  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(strata)){
+    #strata <- get_var(data, "strata")
+    strata <- ".strata"
+  }
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
   if (is.null(group)) group <- strata
@@ -276,9 +318,10 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
   sample_data <- data[!is.na(data[, y]), ]
 
   # Get strata results
-  resultene <- get_strata_results(data, x, y, strata)
+  resultene <- get_strata_results(data, x, y, ".strata")
+  is_surprise <- "surprise_strata" %in% resultene[, ".strata"]
   
-  if (group == strata) {
+  if (group == strata & !is_surprise) {
     return(resultene)
   }
 
@@ -297,8 +340,19 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
     grp_tmp <- unique(sample_data[, group[g]])
 
     # Create vector for group for strata in T_h dataset
+    if (is_surprise){
+      group_convert <- unique(sample_data[, c(".strata", group[g])])
+      
+      #exclude surprise strata first
+      m_surprise <- match("surprise_strata", resultene[, ".strata"])
+      if(!is.na(m_surprise)){
+        resultene <- resultene[-m_surprise, ]
+      }
+      m_strat <- match(resultene[, ".strata"], group_convert[, ".strata"])
+    } else {
     group_convert <- unique(sample_data[, c(strata, group[g])])
     m_strat <- match(resultene[, strata], group_convert[, strata])
+    }
     Th_grp <- group_convert[m_strat, group[g]]
 
     # Sum variance and totals in each group
@@ -313,6 +367,18 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
 
       # Combine with other groups
       group_dt <- rbind(group_dt, dt_tmp)
+    }
+    if (is_surprise){
+      surprise_obs <- sample_data[sample_data[, ".strata"] == "surprise_strata", ]
+      for (u in 1:nrow(surprise_obs)){
+        # find right group to add to
+        m <- match(surprise_obs[u, strata], group_convert[, 1])
+        Th_sur_group <- match(group_convert[m, group[g]], group_dt[, "group"])
+        
+        # add in total and adjust cv
+        group_dt[Th_sur_group, y_est] <- group_dt[Th_sur_group, y_est] + surprise_obs[u, y]
+        group_dt[Th_sur_group, y_cv] <- sqrt(group_dt[Th_sur_group, y_var])/group_dt[Th_sur_group, y_est] * 100
+      }
     }
   }
   group_dt
@@ -369,13 +435,17 @@ robust_var <- function(x_pop,           # populasjon
 #' @return
 #' @export
 get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRUE){
-  if (is.null(strata)) strata <- get_var(data, "strata")
+  if (is.null(strata)){
+    strata <- ".strata"
+    #strata <- get_var(data, "strata")
+  }
   if (is.null(id)) id <- get_var(data, "id")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
   
   # create sample
   sample_data <- data[!is.na(data[, y]), ]
+  sample_data <- sample_data[sample_data[, ".strata"] != "surprise_strata", ]
 
   # Set variable names
   y_g <- paste(y, "G", sep = "_")
