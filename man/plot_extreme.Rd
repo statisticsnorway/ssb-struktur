@@ -5,14 +5,14 @@
 \title{Plot extreme values
 Plot comparison of the different extreme values using G-values or estimate comparisons.}
 \usage{
-plot_extreme(data, id, y, size = 10, type = "G", ylim = NULL)
+plot_extreme(data, id = NULL, y = NULL, size = 10, type = "G", ylim = NULL)
 }
 \arguments{
 \item{data}{Data frame output from get_extreme() function}
 
-\item{id}{Name of identification variable as a string. Should be same in sample and data dataframes.}
+\item{id}{Name of identification variable as a string.}
 
-\item{y}{Name of the statistic variable}
+\item{y}{Name of the statistic variable.}
 
 \item{size}{The number of outlier units to show. Default is 10.}
 
@@ -21,7 +21,8 @@ plot_extreme(data, id, y, size = 10, type = "G", ylim = NULL)
 \item{ylim}{The upper limit to show in the plot.}
 }
 \value{
-
+Plot showing either comparison of estimates with and 
+without observation point or comparison of G values.
 }
 \description{
 Plot extreme values

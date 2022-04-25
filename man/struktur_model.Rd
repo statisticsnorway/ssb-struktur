@@ -2,10 +2,19 @@
 % Please edit documentation in R/struktur_model.R
 \name{struktur_model}
 \alias{struktur_model}
-\title{Run a Struktur model
+\title{Run a struktur model
 Estimates total and uncertainty for a rate, homogeneous or regression model within strata.}
 \usage{
-struktur_model(data, sample_data = NULL, id, x, y, strata, method = "rate")
+struktur_model(
+  data,
+  sample_data = NULL,
+  id,
+  x,
+  y,
+  strata,
+  exclude = NULL,
+  method = "rate"
+)
 }
 \arguments{
 \item{data}{Population data frame}
@@ -19,11 +28,17 @@ struktur_model(data, sample_data = NULL, id, x, y, strata, method = "rate")
 \item{y}{Name of the statistic variable.}
 
 \item{strata}{Name of the strata variable.}
+
+\item{exclude}{A list of observations in the sample that should be excluded from the model. 
+The observed values are included in the total estimate.}
+
+\item{method}{The type of the model to use.Default is "rate"}
 }
 \value{
-
+Data frame for whole population with mass-imputation values.
+Other variables, beta estimates are also included
 }
 \description{
-Run a Struktur model
+Run a struktur model
 Estimates total and uncertainty for a rate, homogeneous or regression model within strata.
 }

@@ -15,7 +15,8 @@
 #'   The observed values are included in the total estimate.
 #' @param method The type of the model to use.Default is "rate" 
 #'
-#' @return
+#' @return Data frame for whole population with mass-imputation values.
+#' Other variables, beta estimates are also included
 #' @export
 struktur_model <- function(
   data,
@@ -238,8 +239,7 @@ struktur_model <- function(
 #' @param y Name of the statistic variable
 #' @param strata Name of the stratification variable
 #'
-#' @return
-#' @export
+#' @return Table with strata results
 #'
 get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
   if (is.null(strata)) strata <- get_var(data, "strata")
@@ -325,7 +325,7 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
 #' @param strata Name of the stratification variable for running models within.
 #' @param group Name of variable(s) for using for groups.
 #'
-#' @return
+#' @return Table with strata or group results
 #' @export
 #'
 get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
@@ -418,7 +418,7 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
 #' @param hi Hat values
 #' @param method Method to use in calculation. Default set to 'rate'
 #'
-#' @return
+#' @return Robust variance estimates
 robust_var <- function(x_pop,           # populasjon
                        x_utv,         # utvalg
                        ei,
@@ -524,7 +524,7 @@ get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRU
 #' @param y Name of the statistic variable
 #' @param strata Name of stratification variable.
 #'
-#' @return
+#' @return Plot of cv comparisons
 #' @export
 plot_cv <- function(data, y, strata){
   if (is.null(strata)) strata <- get_var(data, "strata")
@@ -568,7 +568,8 @@ plot_cv <- function(data, y, strata){
 #' @param type The type of plot to show. 'G' output a plot of the G values compared to the boundary, type 'estimate' gives a comparison in strata estimates with and without the observation.
 #' @param ylim The upper limit to show in the plot.
 #'
-#' @return
+#' @return Plot showing either comparison of estimates with and 
+#' without observation point or comparison of G values.
 #' @export
 plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim = NULL) {
   if (!type %in% c("G", "estimate")) {
@@ -633,7 +634,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
 #' @param data Data frame to find variables in
 #' @param var Variable to find. Can be 'x', 'y', 'id' or 'strata'
 #' 
-#' @return
+#' @return varaible name
 get_var <- function(data, var){
   if (var == "y"){
     i <- endsWith(names(data), '_rstud')

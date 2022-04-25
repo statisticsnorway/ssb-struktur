@@ -15,7 +15,7 @@ plot_cv(data, y, strata)
 \item{strata}{Name of stratification variable.}
 }
 \value{
-
+Plot of cv comparisons
 }
 \description{
 Plot CVs

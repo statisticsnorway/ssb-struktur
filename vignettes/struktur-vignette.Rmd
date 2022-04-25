@@ -159,21 +159,16 @@ Statistic variables added include:
 #### View results and uncertainty
 Add in here ...
 ```{r, eval = F}
-results_table <- get_results(results, x = "employees", y = "job_vacancies", strata = "industry")
+results_table <- get_results(results)
 results_table
 ```
 
 
 ```{r, echo = F}
-results_table = get_results(results, x = "employees", y = "job_vacancies", strata = "industry")
+results_table = get_results(results)
 kable(head(results_table))
 ```
 
-
-```{r, fig.width = 7}
-library(tidyverse) # take out when removed gather and %>%
-plot_cv(results_table, y = "job_vacancies", strata = "industry")
-```
 
 
 #### View domain estimations
@@ -181,20 +176,12 @@ We generally don't publish statistics at the strata-level. This is usually most 
 
 ```{r, eval = F}
 results$country <- 1
-get_groups(results, 
-              x = "employees", 
-              y = "job_vacancies", 
-              strata = "industry", 
-              group = c("country", "industry"))
+get_results(results, group = c("country", "industry"))
 ```
 
 ```{r, echo = F}
 results$country <- 1
-gg <- get_groups(results, 
-              x = "employees", 
-              y = "job_vacancies", 
-              strata = "industry", 
-              group = c("country", "industry"))
+gg <- get_results(results, group = c("country", "industry"))
 kable(gg)
 ```
 
@@ -204,27 +191,26 @@ Create a table with `get_extremes`
 Add more in here ...
 
 ```{r, eval = F}
-outliers <- get_extremes(data = results, id = "id", x = "employees", y = "job_vacancies", strata = "industry")
+outliers <- get_extremes(data = results)
 head(outliers)
 ```
 
 ```{r, echo = F}
-outliers <- get_extremes(results, id = "id", x = "employees", y = "job_vacancies", strata = "industry")
+outliers <- get_extremes(results)
 kable(head(outliers))
 ```
 
 
 View outliers with the function `plot_extreme`
 
+```{r}
+plot_extreme(outliers)
+```
+
+
 Add in more here. Plots not showing .... 
 ```{r, fig.width = 7, eval = T}
-plot_extreme(outliers, id = "id", y = "job_vacancies", type = "G")
+plot_extreme(outliers, type = "G")
 ```
-
-```{r}
-library(tidyverse)
-plot_extreme(outliers, id = "id", y = "job_vacancies", type = "estimate")
-```
-
 
 

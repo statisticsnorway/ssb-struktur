@@ -19,7 +19,7 @@ robust_var(x_pop, x_utv, ei, hi, method = "rate")
 \item{method}{Method to use in calculation. Default set to 'rate'}
 }
 \value{
-
+Robust variance estimates
 }
 \description{
 Robust variance estimation
