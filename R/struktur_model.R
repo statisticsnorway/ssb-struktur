@@ -344,7 +344,7 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
   resultene <- get_strata_results(data, x, y, ".strata")
   is_surprise <- "surprise_strata" %in% resultene[, ".strata"]
   
-  if (group == strata) {
+  if (length(group) == 1 & group[1] == strata) {
     return(resultene)
   }
   
