@@ -2,8 +2,7 @@
 % Please edit documentation in R/struktur_model.R
 \name{struktur_model}
 \alias{struktur_model}
-\title{Run a struktur model
-Estimates total and uncertainty for a rate, homogeneous or regression model within strata.}
+\title{Run a struktur model}
 \usage{
 struktur_model(
   data,
@@ -39,6 +38,5 @@ Data frame for whole population with mass-imputation values.
 Other variables, beta estimates are also included
 }
 \description{
-Run a struktur model
 Estimates total and uncertainty for a rate, homogeneous or regression model within strata.
 }

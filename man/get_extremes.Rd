@@ -18,9 +18,6 @@ get_extremes(data, id = NULL, x = NULL, y = NULL, strata = NULL, na_rm = TRUE)
 
 \item{strata}{Name of the stratification variable}
 }
-\value{
-
-}
 \description{
 Get extreme values
 Get extreme values in the sample dataset
