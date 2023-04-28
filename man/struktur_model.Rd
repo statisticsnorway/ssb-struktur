@@ -28,10 +28,11 @@ struktur_model(
 
 \item{strata}{Name of the strata variable.}
 
-\item{exclude}{A list of observations in the sample that should be excluded from the model. 
-The observed values are included in the total estimate.}
+\item{exclude}{Vector of id numbers to exclude from the model. This observations will be included 
+in the total with their observed values.}
 
-\item{method}{The type of the model to use.Default is "rate"}
+\item{method}{Model methods to use. Default is 'rate' for a rate model. Also 'homogen' and 'reg'
+for regression model will be available soon.}
 }
 \value{
 Data frame for whole population with mass-imputation values.
