@@ -13,7 +13,7 @@ A data frame with 10000 rows and 7 variables:
   \item{employees_m}{number of male employees}
   \item{turnover}{amount of turnover of the company in NOK}
   \item{size}{category size of the company in terms of turnover (small, mid, large)}
-  \item{industry_group}{the activity group for which the business works in}
+  \item{industry}{the activity group for which the business works in}
 }
 }
 \usage{
