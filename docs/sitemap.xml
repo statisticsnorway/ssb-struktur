@@ -16,6 +16,9 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/news/index.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_extremes.html</loc>
   </url>
   <url>
@@ -43,10 +46,22 @@
     <loc>/reference/pop_data2.html</loc>
   </url>
   <url>
+    <loc>/reference/pop_data_1obs.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pop_data_fulltelling.html</loc>
+  </url>
+  <url>
     <loc>/reference/robust_var.html</loc>
   </url>
   <url>
     <loc>/reference/sample_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sample_data_1obs.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sample_data_fulltelling.html</loc>
   </url>
   <url>
     <loc>/reference/struktur_model.html</loc>
