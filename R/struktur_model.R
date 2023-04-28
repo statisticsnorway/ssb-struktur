@@ -1,4 +1,5 @@
 #' Run a struktur model
+#' 
 #' Estimates total and uncertainty for a rate, homogeneous or regression model within strata.
 #'
 #' @param data Population data frame
