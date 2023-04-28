@@ -101,7 +101,7 @@ struktur_model <- function(
   tab <- table(vekt == Inf)
   if (length(tab) > 1){
     message("Some observation have zero as their explanatory variable and were adjusted (1/(x+1)) to allow a real weight input")
-    vekt[vekt == Inf] <- 1/(sample_data[, x_var]+1)
+    vekt[vekt == Inf] <- 1/(sample_data[, x]+1)
   }
   
   # Add in strata variable
@@ -476,7 +476,7 @@ robust_var <- function(x_pop,           # populasjon
 #' @param x Name of the explanatory variable
 #' @param y Name of the statistic variable
 #' @param strata Name of the stratification variable
-#' @parame na_rm Logical for whether to remove NA values. Default = TRUE.
+#' @param na_rm Logical for whether to remove NA values. Default = TRUE.
 #'
 #' @return A data frame is return containing observations that have values that may be seen as outlier/extreme values
 #' @export
@@ -573,10 +573,10 @@ plot_cv <- function(data, y, strata){
   data_long$CV <- cv_all$values
   
   # plot
-  ggplot2::ggplot(data_long, aes_string(strata, "CV", fill = "CV_type")) +
-    geom_bar(stat = "identity", position='dodge') +
-    scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("CV value (%)")
+  ggplot2::ggplot(data_long, ggplot2::aes_string(strata, "CV", fill = "CV_type")) +
+    ggplot2::geom_bar(stat = "identity", position='dodge') +
+    ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90)) +
+    ggplot2::ylab("CV value (%)")
   
 }
 
@@ -601,6 +601,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
   
   if (is.null(id)) id <- get_var(data, "id")
   if (is.null(y)) y <- get_var(data, "y")
+  .ID <- .estimate <- .exclude <- NULL
   
   extr <- data[1:size, ]
   extr$.ID <- factor(extr[, id], levels = extr[, id])
@@ -618,17 +619,17 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
       ylim <- max(data[, y_g], na.rm = T)
     }
     
-    p <- ggplot2::ggplot(extr, aes(x=.ID)) +
-      geom_col(aes_string(y=y_g)) +
-      geom_segment(aes_string(x = (1:size) -0.5, xend = (1:size) + 0.5,
+    p <- ggplot2::ggplot(extr, ggplot2::aes(x=.ID)) +
+      ggplot2::geom_col(ggplot2::aes_string(y=y_g)) +
+      ggplot2::geom_segment(ggplot2::aes_string(x = (1:size) -0.5, xend = (1:size) + 0.5,
                               y = y_gg, yend = y_gg,
                               color = "'red'")) +
-      xlab(id) +
-      ylab("G value") +
-      scale_color_manual(labels = "G boundary", values =  "red") +
-      coord_cartesian(ylim = c(0, ylim)) +
-      theme(legend.title = element_blank()) +
-      scale_x_discrete(guide = guide_axis(angle = 90))
+      ggplot2::xlab(id) +
+      ggplot2::ylab("G value") +
+      ggplot2::scale_color_manual(labels = "G boundary", values =  "red") +
+      ggplot2::coord_cartesian(ylim = c(0, ylim)) +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))
     
   } else if (type == "estimate") {
     y_est <- paste(y, "est", sep = "_")
@@ -643,12 +644,12 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
     extr_long$.exclude <- include_all$ind
     #p <- extr %>%
     #  gather(exclude, estimate, eval(y_est):eval(y_est_ex))# %>%
-    p <- ggplot2::ggplot(extr_long, aes(.ID, .estimate, fill = .exclude)) +
-      geom_bar(stat = "identity", position='dodge') +
-      scale_fill_discrete(name = "Include/exclude observation",
+    p <- ggplot2::ggplot(extr_long, ggplot2::aes(.ID, .estimate, fill = .exclude)) +
+      ggplot2::geom_bar(stat = "identity", position='dodge') +
+      ggplot2::scale_fill_discrete(name = "Include/exclude observation",
                           labels = c("include", "exclude")) +
-      ylab("strata estimate") + 
-      xlab(id)
+      ggplot2::ylab("strata estimate") + 
+      ggplot2::xlab(id)
   }
   p
 }
