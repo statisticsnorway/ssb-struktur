@@ -12,9 +12,6 @@
 #' in the total with their observed values.
 #' @param method Model methods to use. Default is 'rate' for a rate model. Also 'homogen' and 'reg'
 #' for regression model will be available soon. 
-#' @param exclude A list of observations in the sample that should be excluded from the model. 
-#'   The observed values are included in the total estimate.
-#' @param method The type of the model to use.Default is "rate" 
 #'
 #' @return Data frame for whole population with mass-imputation values.
 #' Other variables, beta estimates are also included
@@ -97,14 +94,14 @@ struktur_model <- function(
   }
   
   # create formula and weights
-  form <- as.formula(paste(y, "~", x, "-1"))
+  form <- stats::as.formula(paste(y, "~", x, "-1"))
   vekt <- 1/sample_data[, x]
   
   # Adjust to allow zeros in the explanatory variable (otherwise weight is inf)
   tab <- table(vekt == Inf)
   if (length(tab) > 1){
     message("Some observation have zero as their explanatory variable and were adjusted (1/(x+1)) to allow a real weight input")
-    vekt[vekt == Inf] <- 1/(sample_data[, x_var]+1)
+    vekt[vekt == Inf] <- 1/(sample_data[, x]+1)
   }
   
   # Add in strata variable
@@ -121,6 +118,16 @@ struktur_model <- function(
     stop("Not all strata were the same in the population file and sample file.")
   }
   strata_n <- length(strata_levels)
+  
+  # Check if any strata have only 1 obs
+  m <- table(sample_data[, strata]) == 1
+  if (any(m)) {
+    strata1 <- table(sample_data[, strata])[m]
+    warning(paste("The following strata have only 1 observation in the sample: ", 
+                  paste(names(strata1), collapse = ","), 
+                  ". These strata have 0 as their variance. Consider merging strata!"))
+  } else strata1 <- NULL
+  
   
   # Set up variable names - TO DO LATER: add in for each y (create loop)
   y_N <- paste(y, "pop", sep = "_")
@@ -157,10 +164,10 @@ struktur_model <- function(
   
   # Add sums to population file
   m_strat <- match(data[, ".strata"], sample_data[, ".strata"])
-  data[x_pop] <- ave(data[, x], data[, ".strata"], FUN = sum)
-  data[x_utv] <- ave(sample_data[, x], sample_data[, ".strata"], FUN = sum)[m_strat]
-  data[y_N] <- ave(data[, y], data[, ".strata"], FUN = length)
-  data[y_n] <- ave(sample_data[, y], sample_data[, ".strata"], FUN = length)[m_strat]
+  data[x_pop] <- stats::ave(data[, x], data[, ".strata"], FUN = sum)
+  data[x_utv] <- stats::ave(sample_data[, x], sample_data[, ".strata"], FUN = sum)[m_strat]
+  data[y_N] <- stats::ave(data[, y], data[, ".strata"], FUN = length)
+  data[y_n] <- stats::ave(sample_data[, y], sample_data[, ".strata"], FUN = length)[m_strat]
   
   # Set up variables
   data[, y_beta] <- NA
@@ -195,7 +202,7 @@ struktur_model <- function(
       # Create weights and fit model
       if (method == "rate"){
         vekt_tmp <- vekt[sample_data[, ".strata"] == st] #####
-        mod_tmp <- lm(form, data = s_tmp, weights = vekt_tmp)
+        mod_tmp <- stats::lm(form, data = s_tmp, weights = vekt_tmp)
       }
       
       # Add beta est back to data
@@ -203,21 +210,26 @@ struktur_model <- function(
       
       # Individual hat, rstud and G values
       m_id <- match(s_tmp[, id], data[, id])
-      data[m_id, y_rstud] <- rstudent(mod_tmp)
-      data[m_id, y_hat] <- hatvalues(mod_tmp)
-      data[m_id, y_G] <- dffits(mod_tmp)
+      data[m_id, y_rstud] <- stats::rstudent(mod_tmp)
+      data[m_id, y_hat] <- stats::hatvalues(mod_tmp)
+      data[m_id, y_G] <- stats::dffits(mod_tmp)
       
-      # Individual leave one out coefficients
-      beta_ex <- NULL
-      for (j in 1:nrow(s_tmp)){
-        mod_ex <- lm(form, data = s_tmp[-j, ], weights = vekt_tmp[-j])
-        beta_ex <- c(beta_ex, mod_ex$coefficients)
+      # Individual leave one out coefficients - change for 1 obs
+      if (length(strata1) == 0){
+      
+        beta_ex <- NULL
+        for (j in 1:nrow(s_tmp)){
+          mod_ex <- stats::lm(form, data = s_tmp[-j, ], weights = vekt_tmp[-j])
+          beta_ex <- c(beta_ex, mod_ex$coefficients)
+        }
+      } else {
+        beta_ex <- mod_tmp$coefficients
       }
       # add in variables for all
       data[m_tmp, y_imp] <- data[m_tmp, x] * data[m_tmp, y_beta]
       
       # add in sample variables
-      data[m_id, y_beta_ex] <- beta_ex
+      data[m_id, y_beta_ex] <- beta_ex 
       data[m_id, y_flag] <- "mod"
       data[m_id, y_imp] <- data[m_id, y]
       
@@ -278,8 +290,17 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
     # check if fulltelling
     if(nrow(pop_tmp) == 0){
       T_h <- s_tmp[1, c(strata, x_pop, x_utv, y_pop, y_utv)]
-      T_h[, y_est] <- sum(s_tmp[, y])
-      T_h[,c(y_var, y_ub, y_lb, y_cv1, y_cv2, y_cv3)] <- NA
+      T_h[, c(y_est, y_ub, y_lb)] <- sum(s_tmp[, y])
+      T_h[,c(y_var, y_cv1, y_cv2, y_cv3)] <- 0
+      message("Some strata are full count strata. Their variance is set to 0.")
+      
+    # Check if single obs strata
+    } else if(nrow(s_tmp) == 1) {
+      T_h <- s_tmp[1, c(strata, x_pop, x_utv, y_pop, y_utv)]
+      T_h[, c(y_est, y_ub, y_lb)] <- s_tmp[1, y_beta] * s_tmp[1, x_pop]
+      T_h[,c(y_var, y_cv1, y_cv2, y_cv3)] <- 0
+      
+    # Rest
     } else {
       
       # Get residuals
@@ -455,8 +476,9 @@ robust_var <- function(x_pop,           # populasjon
 #' @param x Name of the explanatory variable
 #' @param y Name of the statistic variable
 #' @param strata Name of the stratification variable
+#' @param na_rm Logical for whether to remove NA values. Default = TRUE.
 #'
-#' @return
+#' @return A data frame is return containing observations that have values that may be seen as outlier/extreme values
 #' @export
 get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRUE){
   if (is.null(strata)){
@@ -544,17 +566,17 @@ plot_cv <- function(data, y, strata){
   # Data needs to be in long format for ggplot
   data_long <- rbind(data, data, data)
   data_long <- data_long[, -match(c(CV1, CV2, CV3), names(data_long))]
-  cv_all <- stack(list(cv1 = as.vector(data[, CV1]), 
+  cv_all <- utils::stack(list(cv1 = as.vector(data[, CV1]), 
                        cv2 = as.vector(data[, CV2]), 
                        cv3 = as.vector(data[, CV3])))
   data_long$CV_type <- cv_all$ind
   data_long$CV <- cv_all$values
   
   # plot
-  ggplot(data_long, aes_string(strata, "CV", fill = "CV_type")) +
-    geom_bar(stat = "identity", position='dodge') +
-    scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("CV value (%)")
+  ggplot2::ggplot(data_long, ggplot2::aes_string(strata, "CV", fill = "CV_type")) +
+    ggplot2::geom_bar(stat = "identity", position='dodge') +
+    ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90)) +
+    ggplot2::ylab("CV value (%)")
   
 }
 
@@ -579,6 +601,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
   
   if (is.null(id)) id <- get_var(data, "id")
   if (is.null(y)) y <- get_var(data, "y")
+  .ID <- .estimate <- .exclude <- NULL
   
   extr <- data[1:size, ]
   extr$.ID <- factor(extr[, id], levels = extr[, id])
@@ -588,7 +611,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
   # open new plot window if running RStudio
   if (Sys.getenv("RSTUDIO") == "1"){
     options(repr.plot.width = 12, repr.plot.height = 8)
-    dev.new(height = 8, width = 12)
+    grDevices::dev.new(height = 8, width = 12)
   }
   
   if (type == "G") {
@@ -596,17 +619,17 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
       ylim <- max(data[, y_g], na.rm = T)
     }
     
-    p <- ggplot(extr, aes(x=.ID)) +
-      geom_col(aes_string(y=y_g)) +
-      geom_segment(aes_string(x = (1:size) -0.5, xend = (1:size) + 0.5,
+    p <- ggplot2::ggplot(extr, ggplot2::aes(x=.ID)) +
+      ggplot2::geom_col(ggplot2::aes_string(y=y_g)) +
+      ggplot2::geom_segment(ggplot2::aes_string(x = (1:size) -0.5, xend = (1:size) + 0.5,
                               y = y_gg, yend = y_gg,
                               color = "'red'")) +
-      xlab(id) +
-      ylab("G value") +
-      scale_color_manual(labels = "G boundary", values =  "red") +
-      coord_cartesian(ylim = c(0, ylim)) +
-      theme(legend.title = element_blank()) +
-      scale_x_discrete(guide = guide_axis(angle = 90))
+      ggplot2::xlab(id) +
+      ggplot2::ylab("G value") +
+      ggplot2::scale_color_manual(labels = "G boundary", values =  "red") +
+      ggplot2::coord_cartesian(ylim = c(0, ylim)) +
+      ggplot2::theme(legend.title = ggplot2::element_blank()) +
+      ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 90))
     
   } else if (type == "estimate") {
     y_est <- paste(y, "est", sep = "_")
@@ -614,19 +637,19 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
     
     # Data needs to be in long format
     
-    include_all <- stack(list(include = as.vector(extr[, y_est]), 
+    include_all <- utils::stack(list(include = as.vector(extr[, y_est]), 
                               exclude = as.vector(extr[, y_est_ex])))
     extr_long <- rbind(extr, extr)
     extr_long$.estimate <- include_all$values
     extr_long$.exclude <- include_all$ind
     #p <- extr %>%
     #  gather(exclude, estimate, eval(y_est):eval(y_est_ex))# %>%
-    p <- ggplot(extr_long, aes(.ID, .estimate, fill = .exclude)) +
-      geom_bar(stat = "identity", position='dodge') +
-      scale_fill_discrete(name = "Include/exclude observation",
+    p <- ggplot2::ggplot(extr_long, ggplot2::aes(.ID, .estimate, fill = .exclude)) +
+      ggplot2::geom_bar(stat = "identity", position='dodge') +
+      ggplot2::scale_fill_discrete(name = "Include/exclude observation",
                           labels = c("include", "exclude")) +
-      ylab("strata estimate") + 
-      xlab(id)
+      ggplot2::ylab("strata estimate") + 
+      ggplot2::xlab(id)
   }
   p
 }

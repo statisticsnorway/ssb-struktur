@@ -1,13 +1,13 @@
 Package: struktuR
 Type: Package
 Title: Estimation For Structure Statistics
-Version: 0.1.4
+Version: 0.1.5
 Author: Susie Jentoft
 Maintainer: Susie Jentoft <susie.jentoft@ssb.no>
 Description: Estimation of totals within strata and groups using a 
   rate model. Variance and coefficient of variations are estimated using
   robust variance estimation.
-Imports: MASS, ggplot2, Hmisc
+Imports: ggplot2, Hmisc, stats, grDevices, utils
 License: Apache 2.0
 Encoding: UTF-8
 LazyData: true

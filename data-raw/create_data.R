@@ -60,3 +60,42 @@ pop_data2$sick_days[m] <- sample_data$sick_days
 
 save(pop_data2, version = 2, file = "data/pop_data2.RData")
 
+
+#### data for checking 1 obs problem ####
+load("data/pop_data.RData")
+load("data/sample_data.RData")
+
+# Case with one in sample and several in the population
+new_sample <- data.frame(id = 10001, employees = 50, employees_m = 20, employees_f = 30, 
+            turnover = 10000, size = "mid", industry = "G", job_vacancies = 5, 
+           sick_days = 56, sick_days_f = 20, sick_days_m = 36)
+
+new_pop <- data.frame(id=10001:10005, 
+                      employees = c(50, 79, 63, 30, 50), 
+                      employees_m = c(20, 39, 33, 20, 20),
+                      employees_f = c(30, 40, 30, 10, 30),
+                      turnover= c(10000, 15000, 9000, 13000,12000),
+                      size = rep("mid", 5), 
+                      industry = rep("G", 5))
+
+sample_data_1obs <- rbind(sample_data, new_sample)
+save(sample_data_1obs, version = 2, file = "data/sample_data_1obs.RData")
+pop_data_1obs <- rbind(pop_data, new_pop)
+save(pop_data_1obs, version = 2, file = "data/pop_data_1obs.RData")
+
+
+#### Data for checking fulltelling ####
+load("data/pop_data.RData")
+load("data/sample_data.RData")
+
+# Select only big in 'B'
+m <- sample_data$industry != "B" | (sample_data$size == "big")
+sample_data_fulltelling <- sample_data[m, ]
+
+# Keep only those in "B" that are in the sample
+m <- pop_data$id %in% sample_data_fulltelling$id | pop_data$industry != "B"
+pop_data_fulltelling <- pop_data[m, ]
+
+# Save
+save(sample_data_fulltelling, version = 2, file = "data/sample_data_fulltelling.RData")
+save(pop_data_fulltelling, version = 2, file = "data/pop_data_fulltelling.RData")

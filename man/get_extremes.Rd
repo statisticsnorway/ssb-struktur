@@ -17,6 +17,11 @@ get_extremes(data, id = NULL, x = NULL, y = NULL, strata = NULL, na_rm = TRUE)
 \item{y}{Name of the statistic variable}
 
 \item{strata}{Name of the stratification variable}
+
+\item{na_rm}{Logical for whether to remove NA values. Default = TRUE.}
+}
+\value{
+A data frame is return containing observations that have values that may be seen as outlier/extreme values
 }
 \description{
 Get extreme values
