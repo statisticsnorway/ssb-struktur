@@ -1,3 +1,9 @@
+# struktuR 0.1.6
+
+## Functions from AllocSN
+* Added functions from AllocSN to allocate a sample in an optimal way based on a rate estimator. Funcitons include CalcY, CalcS2, and FillStrata. 
+
+
 # struktuR 0.1.5
 
 ## Handling strata with 1 observation
