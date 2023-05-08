@@ -139,3 +139,55 @@
 #' }
 #' @docType data
 "sample_data_fulltelling"
+
+
+
+#' Test dataset for sample allocation from AllocSN
+#' 
+#' This dataset is is a test dataset containing a small population of 100
+#' companies. Variables include turnover for three periods and whethere they
+#' were sampled or not.
+#' 
+#' @name testData
+#' @docType data
+#' @return One dataset containing 100 rows and 11 variables:
+#' \item{dufNr}{company number} 
+#' \item{nace5}{industry group (5 digits)}
+#' \item{nace3}{industry group (3 digits)} 
+#' \item{antAnsatt}{number of employees in the first period} 
+#' \item{antAnsatt2}{number of employees in the second period} 
+#' \item{storGrp}{group for size of company based on number of employees in the first period} 
+#' \item{storGrp2}{group for size of company based on number of employees in the second period} 
+#' \item{y1}{turnover in the first period} 
+#' \item{y2}{turnover in the second period} 
+#' \item{y3}{turnover in the third period} 
+#' \item{utv1}{binary variable for whether or not the company was in the sample for the first period} 
+#' \item{utv2}{binary variable for whether or not the company was in the sample for the second period}
+#' \item{utv3}{binary variable for whether or not the company was in the sample for the third period}
+#' @keywords datasets
+"testData"
+
+
+
+#' Second test dataset for sample allocation from AllocSN
+#' 
+#' This dataset is is a test dataset containing a population of 2000 companies
+#' . Variables include turnover for three periods and whether they were sampled
+#' or not.
+#' 
+#' @name testData2
+#' @docType data
+#' @return One dataset containing 11 variables and 2000 rows:
+#' \item{dufNr}{company number} 
+#' \item{nace5}{industry group (5 digits)}
+#' \item{nace3}{industry group (3 digits)} 
+#' \item{antAnsatt}{number of employees} 
+#' \item{storGrp}{group for size of company based on number of employees}
+#' \item{y1}{turnover in the first period} 
+#' \item{y2}{turnover in the second period} 
+#' \item{y3}{turnover in the third period} 
+#' \item{utv1}{binary variable for whether or not the company was in the sample for the first period} 
+#' \item{utv2}{binary variable for whether or not the company was in the sample for the second period} 
+#' \item{utv3}{binary variable for whether or not the company was in the sample for the third period}
+#' @keywords datasets
+"testData2"
