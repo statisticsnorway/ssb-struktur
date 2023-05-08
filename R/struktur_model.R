@@ -442,7 +442,7 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
 #'
 #' @return Robust variance estimates
 robust_var <- function(x_pop,           # populasjon
-                       x_utv,         # utvalg
+                       x_utv,           # utvalg
                        ei,
                        hi,
                        method = "rate"){
