@@ -1,0 +1,302 @@
+---
+title: "FillStrata"
+description: >
+   Optimal allocation of sample sizes for structure statistics
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FillStrata}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(struktuR)
+```
+
+
+# Getting started using FillStrata
+
+First we set up some test data with 5 strata
+
+```{r}
+s2       <- c(35, 3, 2, 30, 7)         # Variance estimate
+N        <- c(100, 100, 500, 50, 150)  # N in each strata
+names(N) <- paste("st",1:5,sep="")  # Strata-names
+totY     <- c(8800,900,5500,400,300)   # Totals in each strata
+g        <- c("grA","grA","grB","grB","grB") # Two groups
+```
+
+Next we run the optimal allocation
+
+```{r}
+a = FillStrata(s2, N)
+```
+
+Tables with strata sample sizes when the total sample is 30, 100 or 300.
+
+```{r}
+table(a$filledStrata[1:30])
+table(a$filledStrata[1:100])
+table(a$filledStrata[1:300])
+```
+
+Total variance when total sample size is 300
+
+```{r}
+a$sumVar[300]
+```
+
+
+Sample size which ensures a total variance is not larger than 1000
+
+```{r}
+table(a$filledStrata[1:(max(which(a$sumVar >= 1000)) + 1)])
+```
+
+Total sample size of 200 chosen in advance
+
+```{r}
+ table(FillStrata(s2, N, totn = 200)$filledStrata)
+```
+
+Total sample size of 250 with a minimum of 40 in each stratum
+```{r}
+table(FillStrata(s2, N, totn = 250, min_n = 40)$filledStrata)
+```
+
+Total sample size of 300 with a minimum of 40 in the first two strata and 50 in the others.
+
+```{r}
+table(FillStrata(s2, N, totn = 300, min_n = c(40, 40, 50, 50, 50))$filledStrata)
+```
+
+Total sample size of 250 with a maximum of 70 in each stratum 
+```{r}
+table(FillStrata(s2, N, totn = 250, max_n = 70)$filledStrata)
+```
+
+Total sample size of 250 with a maximum of 30 in the first two strata and 100 in the last three
+
+```{r}
+table(FillStrata(s2, N, totn = 250, max_n = c(30, 30, 100, 100, 100))$filledStrata)
+```
+
+
+
+
+
+# Using FSmatrix
+
+The following is an example using FSmatrix with a total sample size of 200 chosen in advance. 
+
+```{r}
+ m = FSmatrix(s2=s2, N=N, totn=200, group=g)
+```
+ 
+There are 3 ways of allocating n in each strata
+```{r}
+m[,1]$n
+m[1,]$Strata
+m[[1,1]]
+```
+
+Alternativ functions:
+
+```{r}
+FillStrata(s2=s2,N=N,totn=200,group=g,returnMatrix=TRUE)[[1,1]]
+FillStrata(s2=s2,N=N,totn=200,group=g,returnTable=TRUE)
+FStotnAlloc(s2=s2,N=N,totn=200,group=g)
+```
+
+Allocation using varLimits
+
+```{r}
+vL = c(5000,10000)   # variance limits for groups 
+m = FSmatrix(s2=s2,N=N,varLimits=vL,group=g)
+m[[1,1]] # Allocated n in each strata
+m[3,] # Total variance in strata, group (less than limits) and all.
+```
+
+Alternatives:
+```{r}
+FillStrata(s2=s2,N=N,varLimits=vL,group=g,returnMatrix=TRUE)[[1,1]] 
+FillStrata(s2=s2,N=N,varLimits=vL,group=g) 
+FSvarAlloc(s2=s2,N=N,varLimits=vL,group=g)
+```
+
+
+Calculate CV from totY in strata from known allocation (20%)
+
+```{r}
+m = FSmatrix(s2=s2,N=N,totY=totY,max_n=round(N/5),group=g)
+m[5,] # CV in strata, group and all.
+
+```
+
+
+Alternatives for CV in group:
+```{r}
+FSmatrix(s2=s2,N=N,totY=totY,min_n=round(N/5),group=g,cvLimits=Inf)[[5,2]]
+FillStrata(s2=s2,N=N,totY=totY,min_n=round(N/5),group=g,cvLimits=Inf)
+FillStrata(s2=s2,N=N,totY=totY,min_n=round(N/5),group=g,cvLimits=Inf,returnMatrix=TRUE)[[5,2]]
+FStotCV(s2=s2,N=N,totY=totY,min_n=round(N/5),group=g)
+```
+
+
+Allocation from CV: 2% and 3% in the two groups
+
+```{r}
+m=FSmatrix(s2=s2,N=N,totY=totY,cvLimits=c(2,3),group=g)
+m[[1,1]] # Allocated n in each strata
+m[5,] # CV in strata, group (less than limits) and all.
+
+
+```
+
+Alternatives:
+```{r}
+FillStrata(s2=s2,N=N,totY=totY,cvLimits=c(2,3),group=g,returnMatrix=TRUE)[[1,1]]
+FillStrata(s2=s2,N=N,totY=totY,cvLimits=c(2,3),group=g) 
+FScvAlloc(s2=s2,N=N,totY=totY,cvLimits=c(2,3),group=g) 
+```
+
+
+Allocation as above, but  totYgroup as intput instead of totY 
+```{r}
+FSmatrix(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g)[[1,1]] 
+# Alternatives
+FillStrata(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g,returnMatrix=TRUE)[[1,1]]
+FillStrata(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g) 
+FScvAlloc2(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g) 
+```
+
+Allocation from CV in groups and overall
+```{r}
+g2 = cbind(struktuR:::makeDummy(g),1) # Create dummy matrix from g and add extra column
+colnames(g2)[3] = "All"
+# In Ex4 overall CV is 1.66. Now we set 1.6 as overall limit in addition to "2" and "3" 
+m=FSmatrix(s2=s2,N=N,totY=totY,cvLimits=c(2,3,1.6),group=g2)
+```
+
+
+As previous example with totnGroup as new input
+```{r}
+FSmatrix(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g,totnGroup=c(10,100))[[1,1]]
+# Group 1: Results changed so that total is 10. Group 2 below 100 -> no change
+```
+
+
+As earlier example with min_nGroup as new input
+
+
+```{r}
+FSmatrix(s2=s2,N=N,totYgroup=c(10000,5000),cvLimits=c(2,3),group=g,min_nGroup=c(10,100))[[1,1]]
+# Change in group 2 since below 100
+```
+
+# Examples use_n option
+Create an allocation plan where we select 50%, 25%, 12.5% etc in each stratum
+First create a table with the desired sample size choices in each stratum
+
+```{r}
+use_n = round(rbind(N, N / 2, N / 4, N / 8, N / 16, N / 32, N / 64, N / 128, N / 256))
+#'   use_n
+```
+
+Second create the plan using these numbers with a total sample size of 300 
+```{r}
+table(FillStrata(s2, N, totn = 300, use_n = use_n)$filledStrata)
+```
+
+Since this doesn't quite fit we adjust the total sample size up to 313 (stratum 3 is missing 13 to fullfill requirement)
+
+```{r}
+table(FillStrata(s2, N, totn = 313, use_n = use_n)$filledStrata)
+```
+
+Equivalent with a total sample size of 100
+```{r}
+ table(FillStrata(s2, N, totn = 100, use_n = use_n)$filledStrata)
+```
+
+Strata nr 1 has one too many so we can re-run with a total sample size of 99
+
+```{r}
+table(FillStrata(s2, N, totn = 99, use_n = use_n)$filledStrata)
+```
+
+
+Find out prior to running the number that gives the prefect match
+```{r}
+d <- diff(FillStrata(s2, N, use_n = use_n, corrSumVar = TRUE)$sumVar)
+tn <- 1+which(log(d[2:length(d)] / d[1:(length(d)-1)])< -1E-10)
+tn
+```
+
+
+Print out all the possibilities  
+```{r}
+a <- FillStrata(s2, N, use_n = use_n)
+for(totn in tn){
+  cat("\n----------------------\n      Total n =", totn, "\nTotal variance =", a$sumVar[totn])
+  print(table(a$filledStrata[1:totn]))
+} 
+```
+
+As above but with the optimal alternative (without use_n)
+
+```{r}
+aOpt <- FillStrata(s2, N)
+for(totn in tn){
+    cat("\n\n----------------------\n       Total n =",totn,
+         "\nTotal variance =", a$sumVar[totn],
+         "\n  Opt variance =", aOpt$sumVar[totn],"\n")
+     print(table(a$filledStrata[1:totn]))
+     print(table(aOpt$filledStrata[1:totn]))
+   }
+```
+
+Additional constraint that strata sample sizes are at least 20
+Strata sample size sizes between 50% and 100% are not allowed (50% and 100% only)
+This is achieved by using both min_n and use_n 
+
+```{r}
+table(FillStrata(s2, N, totn = 200, min_n = 20, use_n = use_n[1:2, ])$filledStrata)
+```
+
+Ten-fold alternative which invokes printing of "---------#---------#---" during calcs
+
+```{r}
+table(FillStrata(s2, 10 * N, totn = 10 * 200, min_n = 10 * 20, use_n = 10 * use_n[1:2, ])$filledStrata)
+```
+
+# Examples of use with varLimits and group options
+
+Sample size to ensure the total variance is not larger than 1000 
+```{r}
+
+FillStrata(s2, N, varLimits=1000) 
+```
+
+
+Sample size that ensures the total variance for the first two strata and last three strata is not larger than 500 
+```{r}
+FillStrata(s2, N, varLimits = c(500, 500), group = c(1, 1, 2, 2, 2)) 
+```
+
+
+The total variance in each group given a sample size of 75 in each stratum
+
+```{r}
+FillStrata(s2, N, varLimits = Inf, min_n = rep(75, 5), group = c(1, 1, 2, 2, 2)) 
+```
+
+Sample size that ensures the total variance for the first group < 100 and the total variance < 1000 
+
+```{r}
+md = struktuR:::makeDummy(c(1, 1, 2, 2, 2))
+md[, 2] = 1
+FillStrata(s2, N, varLimits = c(100, 1000), group = md) 
+```
+
