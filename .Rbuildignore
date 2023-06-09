@@ -6,3 +6,4 @@ run_examples.R
 ^docs$
 ^pkgdown$
 ^/data-raw$
+^.github$
