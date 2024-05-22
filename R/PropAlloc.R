@@ -1,59 +1,20 @@
-##############################          PropAlloc         #################################################
-#
-# Proportional allocation 
-#
-# The function make use of:
-# - CheckInput
-#   - Kostra-package
-# - round2 
-#   - Defined further down in the file 
-#
-###########################################################################################################
 
-# Input to the function:
-#
-# N         The population size within each strata (a vector of integers 1, 2, 3...).
-#
-# X         The X-total, per stratum, to which the allocation should be proportional (a vector of numbers in the range [0, Inf)).
-#           If a stratum has X=0, that stratum will not be allocated samples unless the stratum has min_n>0 or take_all=1.
-#
-# totn      The total desired sample size (integer 1, 2, 3...)
-#
-# take_all  Optional. A vector of 0’s and 1’s, where 1 indicates that the stratum is a take-all stratum.
-#
-# take_none Optional. A vector of 0’s and 1’s, where 1 indicates that the stratum is a take-none stratum.
-#
-# max_n     Optional. The maximum number to be allocated per stratum. Integer 1, 2, 3..., either a single value or a vector. NA's are allowed.
-#           Strata with take_all=1 override max_n.
-#
-# min_n     Optional. The minimum number to be allocated per stratum. Integer 0, 1, 2..., either a single value or a vector. NA's are allowed.
-#           Strata with take_none=1 override min_n.
-#           If min_n>max_n (and take_all/take_none = 0), min_n is overridden by max_n.
-#
-# max_it    The maximum number of iterations for the algorithm (default 1000). An integer 1, 2, 3, ... (it's advisable to choose a large value).
-#
-#
-# The algorithm:
-#
-# First, calculate a value k by dividing totn by the sum of the elements in X (k=totn/sum(X)). Then, calculate n by multiplying k with X (n=k*X). 
-# The elements in n are then rounded to the nearest integer and adjusted for any constraints such as min_n/max_n or take_all/take_none. If 
-# sum(n)=totn, the allocation is complete.
-# If the sum of n does not equal totn, an iterative algorithm starts. First, k is adjusted, either by decreasing it if the sum(n)>totn or increasing 
-# it if sum(n)<totn. Then n=k*X, rounded to the nearest integer and adjusted for any constraints. This is done until sum(n)=totn or the maximum 
-# number of iterations is reached.
-# It is not guaranteed that the algorithm will achieve the desired sample size totn, even with numerous iterations. In such cases, a warning is given.
-#
-# Output:
-# n           The proportional allocation
-# n_adjusted  If the algorithm managed to give exact totn, then n_adjusted=n, otherwise n_adjusted is an adjusted version of n so that 
-#             sum(n_adjusted)=totn
-# LB and UB   Lower and upper bounds for n, based on the input
-# it_number   Number of completed iterations in the algorithm
-#
-# Details: 
-# The allocation n is independent of how the strata are sorted in the input (i.e., one stratum receives the same n regardless of how the strata 
-# are sorted). However, n_adjusted may vary with the sorting of the input (except when n_adjusted = n).
 
+#' Title
+#'
+#' @param N 
+#' @param X 
+#' @param totn 
+#' @param take_all 
+#' @param take_none 
+#' @param min_n 
+#' @param max_n 
+#' @param max_it 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 
 PropAlloc <- function(N, X, totn, take_all = NULL, take_none = NULL, min_n = NULL, max_n = NULL, max_it = 1000) {
   
@@ -230,17 +191,16 @@ PropAlloc <- function(N, X, totn, take_all = NULL, take_none = NULL, min_n = NUL
 
 
 
-##############################        round2         ####################################################
-#
-# Rounds the values in its first argument to the specified number of decimal places.
-#
-# x      	 a numeric vector.
-# digits	 integer indicating the number of decimal places (default 0). Negative values are allowed.
-#
-# When rounding from 5, it rounds up. E.g. round2(0.5) is 1 and round2(-2.5) is -3.
-# Rounding to a negative number of digits means rounding to a power of ten, so for example round(x, digits = -2) rounds to the nearest hundred.
-#
-#########################################################################################################
+
+#' Title
+#'
+#' @param x 
+#' @param digits 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 
 round2 = function(x, digits = 0) {
   posneg <- sign(x)
