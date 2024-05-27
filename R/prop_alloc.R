@@ -24,6 +24,10 @@
 #' \item{BU}{Upper bounds for n, based on the input}
 #' \item{it_number}{Number of completed iterations in the algorithm}
 #' 
+#' @details
+#' It is not guaranteed that the algorithm will achieve the desired sample size totn, even with numerous iterations. In such cases, a warning is given. 
+#' The allocation n is independent of how the strata are sorted in the input (i.e., one stratum receives the same n regardless of how the strata are sorted). However, n_adjusted may vary with the sorting of the input (except when n_adjusted = n)
+#' 
 #' @export
 #'
 #' @examples
