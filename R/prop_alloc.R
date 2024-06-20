@@ -25,8 +25,19 @@
 #' \item{it_number}{Number of completed iterations in the algorithm}
 #' 
 #' @details
-#' It is not guaranteed that the algorithm will achieve the desired sample size totn, even with numerous iterations. In such cases, a warning is given. 
-#' The allocation n is independent of how the strata are sorted in the input (i.e., one stratum receives the same n regardless of how the strata are sorted). However, n_adjusted may vary with the sorting of the input (except when n_adjusted = n)
+#' It is not guaranteed that the algorithm will achieve the desired sample size totn exactly, even with numerous iterations. In 
+#' such cases, a warning is given. However, the adjusted version of n, n_adjusted, always gives the desired sample size. \cr
+#' The allocated sample size n is independent of how the strata are ordered in the input (i.e., a specific stratum receives the 
+#' same sample size regardless of how the input are sorted). However, n_adjusted may vary with the sorting of the input (except 
+#' when the algorithm achieve the desired sample size totn exactly, because then n_adjusted=n).
+#'
+#' The algorithm: \cr
+#' First, calculate a value k by dividing totn by the sum of the elements in X (k=totn/sum(X)). Then, calculate n by multiplying 
+#' k with X (n=k*X). The elements in n are then rounded to the nearest integer and adjusted for any constraints such as 
+#' min_n/max_n or take_all/take_none. If sum(n)=totn, the allocation is complete. If the sum of n does not equal totn, an 
+#' iterative algorithm starts: First, k is adjusted, either by decreasing it if the sum(n)>totn or increasing it if sum(n)<totn. 
+#' Then n=k*X, rounded to the nearest integer and adjusted for any constraints. This iteration is done until sum(n)=totn or the 
+#' maximum number of iterations is reached.
 #' 
 #' @export
 #'
