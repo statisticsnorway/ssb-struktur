@@ -36,8 +36,9 @@
 #' 
 #' @details
 #' If strataVar is given, the marking is performed within each stratum. Parameters given as a single number then apply to 
-#' each stratum. If parameter is a vector, the order should correspond to the order obtained when the input data is sorted 
-#' by strataVar using order(): data[order(data[ , strataVar]) , ] \cr \cr
+#' each stratum. If a parameter is given as a vector, then length should equal to the number of strata, and the order of 
+#' the elements should correspond to the order obtained when the input data is sorted by strataVar using order(): 
+#' data[order(data[ , strataVar]) , ] \cr \cr
 #' Method 1: Marks the largest x-values so that they (at least) cover a specified percentage of the total x-value (x < 0 are not included in the total x-value). 
 #'           Only x > 0 can be marked with this method.
 #'           If strataVar is used, this is done per stratum, and the total x-value applies to the stratum.
