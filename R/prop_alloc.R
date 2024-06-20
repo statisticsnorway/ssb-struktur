@@ -10,12 +10,15 @@
 #' @param totn The total desired sample size (an integer)
 #' @param take_all Optional. A vector of 0’s and 1’s, where 1 indicates that the stratum is a take-all stratum
 #' @param take_none Optional. A vector of 0’s and 1’s, where 1 indicates that the stratum is a take-none stratum
-#' @param min_n Optional. The minimum number to be allocated per stratum. Integer, either a single value or a vector. NA's and 0 are allowed.
+#' @param min_n Optional. Minimum sample size in each stratum. This can be a single integer used in all strata or a vector of 
+#'              integers (one for each stratum). NA's and 0 are allowed.
 #'              Strata with take_none=1 override min_n.
 #'              If min_n>max_n (and take_all/take_none = 0), min_n is overridden by max_n
-#' @param max_n Optional. The maximum number to be allocated per stratum. Integer, either a single value or a vector. NA's are allowed.
+#' @param max_n Optional. Maximum sample size in each stratum. This can be a single integer used in all strata or a vector of 
+#'              integers (one for each stratum). NA's are allowed.
 #'              Strata with take_all=1 override max_n
-#' @param max_it The maximum number of iterations for the algorithm (default 1000). An integer (it's advisable to choose a large value)
+#' @param max_it The maximum number of iterations for the algorithm (default 1000). An integer (it's advisable to choose a 
+#'               large value)
 #'
 #' @return A data frame with the variables (in addition to the input):
 #' \item{n}{Allocated sample size} 
