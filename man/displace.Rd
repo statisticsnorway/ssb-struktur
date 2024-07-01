@@ -19,3 +19,4 @@ A vector
 A function that shifts the elements in a vector one step to the right, the last element disappears 
 while x_1 is inserted as the first element
 }
+\keyword{internal}
