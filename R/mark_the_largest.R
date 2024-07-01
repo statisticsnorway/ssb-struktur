@@ -84,17 +84,17 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
                              max_n_method1and2 = NULL, min_x_method3and4 = NULL) {
   
   if(!is.data.frame(data)) stop("The input data set should be a data.frame")
-  CheckInput(idVar, type = "varName", data = data)
-  CheckInput(strataVar, type = "varName", data = data, okNULL = TRUE)
-  CheckInput(xVar, type = "varName", data = data)
-  CheckInput(yVar, type = "varName", data = data, okNULL = TRUE)
-  CheckInput(method, type = "integer", okSeveral = TRUE, alt = c(1, 2, 3, 4), okDuplicates = TRUE)
-  CheckInput(par_method1, type = "numeric", min = 0, max = 100, okSeveral = TRUE, okNULL = TRUE)
-  CheckInput(par_method2, type = "numeric", min = 0, okSeveral = TRUE, okNULL = TRUE)
-  CheckInput(par_method3, type = "integer", min = 0, okSeveral = TRUE, okNULL = TRUE)
-  CheckInput(par_method4, type = "numeric", min = 0, max = 100, okSeveral = TRUE, okNULL = TRUE)
-  CheckInput(max_n_method1and2, type = "integer", min = 0, okSeveral = TRUE, okNULL = TRUE)
-  CheckInput(min_x_method3and4, type = "numeric", okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(idVar, type = "varName", data = data)
+  SSBtools::CheckInput(strataVar, type = "varName", data = data, okNULL = TRUE)
+  SSBtools::CheckInput(xVar, type = "varName", data = data)
+  SSBtools::CheckInput(yVar, type = "varName", data = data, okNULL = TRUE)
+  SSBtools::CheckInput(method, type = "integer", okSeveral = TRUE, alt = c(1, 2, 3, 4), okDuplicates = TRUE)
+  SSBtools::CheckInput(par_method1, type = "numeric", min = 0, max = 100, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(par_method2, type = "numeric", min = 0, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(par_method3, type = "integer", min = 0, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(par_method4, type = "numeric", min = 0, max = 100, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(max_n_method1and2, type = "integer", min = 0, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(min_x_method3and4, type = "numeric", okSeveral = TRUE, okNULL = TRUE)
   
   dat <- data[, c(idVar, xVar)]
   names(dat) <- c("id", "x")
