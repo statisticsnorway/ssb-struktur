@@ -8,3 +8,5 @@ run_examples.R
 ^/data-raw$
 ^.github$
 ^\.github$
+LICENSE.md
+SECURITY.md
