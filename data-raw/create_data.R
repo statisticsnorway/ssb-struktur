@@ -21,7 +21,7 @@ pop_data$industry <- rep(c("B", "C", "D", "E", "F"), each = 2000)
 pop_data[1, c("employees", "employees_f", "employees_m")] <- 0
 #pop_data[2, c("employees", "employees_f", "employees_m")] <- NA
 
-save(pop_data, version=2, file = "data/pop_data.RData")
+usethis::use_data(pop_data)
 
 #### sample_data ####
 s <- sample(1:10000, size = 1000)
@@ -46,8 +46,7 @@ sample_data$sick_days[5:15] <- NA
 sample_data <- sample_data[order(sample_data$id), ]
 row.names(sample_data) <- NULL
 
-save(sample_data, version = 2, file = "data/sample_data.RData")
-
+usethis::use_data(sample_data)
 
 #### pop_data2 ####
 pop_data2 <- pop_data
@@ -58,8 +57,7 @@ m <- match(sample_data$id, pop_data2$id)
 pop_data2$job_vacancies[m] <- sample_data$job_vacancies
 pop_data2$sick_days[m] <- sample_data$sick_days
 
-save(pop_data2, version = 2, file = "data/pop_data2.RData")
-
+usethis::use_data(pop_data2)
 
 #### data for checking 1 obs problem ####
 load("data/pop_data.RData")
@@ -79,10 +77,10 @@ new_pop <- data.frame(id=10001:10005,
                       industry = rep("G", 5))
 
 sample_data_1obs <- rbind(sample_data, new_sample)
-save(sample_data_1obs, version = 2, file = "data/sample_data_1obs.RData")
-pop_data_1obs <- rbind(pop_data, new_pop)
-save(pop_data_1obs, version = 2, file = "data/pop_data_1obs.RData")
+usethis::use_data(sample_data_1obs)
 
+pop_data_1obs <- rbind(pop_data, new_pop)
+usethis::use_data(pop_data_1obs)
 
 #### Data for checking fulltelling ####
 load("data/pop_data.RData")
@@ -97,5 +95,5 @@ m <- pop_data$id %in% sample_data_fulltelling$id | pop_data$industry != "B"
 pop_data_fulltelling <- pop_data[m, ]
 
 # Save
-save(sample_data_fulltelling, version = 2, file = "data/sample_data_fulltelling.RData")
-save(pop_data_fulltelling, version = 2, file = "data/pop_data_fulltelling.RData")
+usethis::use_data(sample_data_fulltelling)
+usethis::use_data(pop_data_fulltelling)
