@@ -70,38 +70,38 @@
 #' 
 prop_alloc <- function(N, X, totn, take_all = NULL, take_none = NULL, min_n = NULL, max_n = NULL, max_it = 1000) {
   
-  CheckInput(N, type = "integer", min = 1, okSeveral = TRUE) 
-  CheckInput(X, type = "numeric", min = 0, okSeveral = TRUE) 
+  SSBtools::CheckInput(N, type = "integer", min = 1, okSeveral = TRUE) 
+  SSBtools::CheckInput(X, type = "numeric", min = 0, okSeveral = TRUE) 
   if(sum(is.infinite(X))) stop("X: Inf is not allowed")
   if(length(X) != length(N)) stop("N and X are not of the same length")
-  CheckInput(totn, type = "integer", min = 1)
+  SSBtools::CheckInput(totn, type = "integer", min = 1)
   
-  CheckInput(take_all, type = "integer", alt = c(0, 1), okDuplicates = TRUE, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(take_all, type = "integer", alt = c(0, 1), okDuplicates = TRUE, okSeveral = TRUE, okNULL = TRUE)
   if(is.null(take_all)) take_all2 <- rep(0, times = length(N))
   else take_all2 <- take_all
   if(length(take_all2) != length(N)) stop("take_all is not of the same length as N")
   
-  CheckInput(take_none, type = "integer", alt = c(0, 1), okDuplicates = TRUE, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(take_none, type = "integer", alt = c(0, 1), okDuplicates = TRUE, okSeveral = TRUE, okNULL = TRUE)
   if(is.null(take_none)) take_none2 <- rep(0, times = length(N))
   else take_none2 <- take_none
   if(length(take_none2) != length(N)) stop("take_none is not of the same length as N")
   if(max(take_all2 + take_none2) > 1) stop("Inconsistency between take_all and take_none (at least one stratum has take_all = 1 and take_none = 1)")
   
-  CheckInput(min_n, type = "integer", min = 0, okNA = TRUE, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(min_n, type = "integer", min = 0, okNA = TRUE, okSeveral = TRUE, okNULL = TRUE)
   if(is.null(min_n)) min_n2 <- rep(0, length(N))
   else if(length(min_n) == 1) min_n2 <- rep(min_n, length(N))
   else min_n2 <- min_n
   min_n2[is.na(min_n2)] <- 0
   if(length(min_n2) != length(N)) stop("min_n should have length 1 or the same length as N")
   
-  CheckInput(max_n, type = "integer", min = 1, okNA = TRUE, okSeveral = TRUE, okNULL = TRUE)
+  SSBtools::CheckInput(max_n, type = "integer", min = 1, okNA = TRUE, okSeveral = TRUE, okNULL = TRUE)
   if(is.null(max_n)) max_n2 <- N
   else if(length(max_n) == 1) max_n2 <- rep(max_n, length(N))
   else max_n2 <- max_n
   max_n2 <- ifelse(is.na(max_n2), N, max_n2) 
   if(length(max_n2) != length(N)) stop("max_n should have length 1 or the same length as N")
   
-  CheckInput(max_it, type = "integer", min = 1)
+  SSBtools::CheckInput(max_it, type = "integer", min = 1)
   
   # Boundaries for the allocation
   UB <- ifelse(X == 0, pmin(min_n2, max_n2, N), pmin(max_n2, N))
