@@ -16,7 +16,7 @@ and can mark the largest so a specified percent of all units are marked (method 
     
     <a class="navbar-brand me-2" href="../index.html">struktuR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -187,12 +187,72 @@ first by idVar before further sorting and marking is done.</p>
 <span class="r-in"><span><span class="co"># Example with method 1, 2 and 3</span></span></span>
 <span class="r-in"><span><span class="fu">mark_the_largest</span><span class="op">(</span>data <span class="op">=</span> <span class="va">testData</span>, idVar <span class="op">=</span> <span class="st">'id'</span>, xVar <span class="op">=</span> <span class="st">'x'</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>                 par_method1 <span class="op">=</span> <span class="fl">15</span>, par_method2 <span class="op">=</span> <span class="fl">5000</span>, par_method3 <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in mark_the_largest(data = testData, idVar = "id", xVar = "x", method = c(1,     2, 3), par_method1 = 15, par_method2 = 5000, par_method3 = 5):</span> could not find function "mark_the_largest"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    id          x par_method1 par_method2 par_method3 large1 large2 large3 large</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  28 1755.82152          15        5000           5      1      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   3 1719.23612          15        5000           5      1      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   1 1688.47966          15        5000           5      1      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  24 1553.10406          15        5000           5      0      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  17 1395.47290          15        5000           5      0      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   4 1348.71579          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  30 1268.94547          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8   5 1266.01136          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  14 1174.49728          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 13 1150.16903          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 23 1137.08342          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 12 1081.14497          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 22 1038.01792          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14  2  984.35659          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 16  959.67966          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 29  914.75150          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 19  788.83780          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18 11  700.85778          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19 25  610.86377          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20 10  601.84912          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21 20  534.26997          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22  8  476.92625          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23  9  451.53607          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24  7  422.98241          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25  6  305.84389          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26 18  113.40098          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27 21  -44.53893          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28 26  -80.36282          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29 15         NA          15        5000           5      0      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30 27         NA          15        5000           5      0      0      0     0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example with stratification</span></span></span>
 <span class="r-in"><span><span class="fu">mark_the_largest</span><span class="op">(</span>data <span class="op">=</span> <span class="va">testData</span>, idVar <span class="op">=</span> <span class="st">'id'</span>, strataVar <span class="op">=</span> <span class="st">'strata'</span>, xVar <span class="op">=</span> <span class="st">'x'</span>, </span></span>
 <span class="r-in"><span>                 method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span>, par_method1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>, par_method4 <span class="op">=</span> <span class="fl">25</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in mark_the_largest(data = testData, idVar = "id", strataVar = "strata",     xVar = "x", method = c(1, 4), par_method1 = c(20, 30), par_method4 = 25):</span> could not find function "mark_the_largest"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    id          x strata par_method1 par_method4 large1 large4 large</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   3 1719.23612      A          20          25      1      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   1 1688.47966      A          20          25      1      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   4 1348.71579      A          20          25      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   5 1266.01136      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  12 1081.14497      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   2  984.35659      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  11  700.85778      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  10  601.84912      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   8  476.92625      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10  9  451.53607      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11  7  422.98241      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12  6  305.84389      A          20          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13 28 1755.82152      B          30          25      1      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 24 1553.10406      B          30          25      1      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 17 1395.47290      B          30          25      1      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 30 1268.94547      B          30          25      0      1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 14 1174.49728      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18 13 1150.16903      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19 23 1137.08342      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20 22 1038.01792      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21 16  959.67966      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22 29  914.75150      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23 19  788.83780      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24 25  610.86377      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25 20  534.26997      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26 18  113.40098      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27 21  -44.53893      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28 26  -80.36282      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29 15         NA      B          30          25      0      0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30 27         NA      B          30          25      0      0     0</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

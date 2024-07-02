@@ -12,7 +12,7 @@ or to the number of units). The algorithm takes into account any min/max per str
     
     <a class="navbar-brand me-2" href="../index.html">struktuR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -154,27 +154,54 @@ maximum number of iterations is reached.</p>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="co"># Total sample size of 500, allocated proportionally to X</span></span></span>
 <span class="r-in"><span>  <span class="fu">prop_alloc</span><span class="op">(</span>N <span class="op">=</span> <span class="va">N</span>, X <span class="op">=</span> <span class="va">X</span>, totn <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prop_alloc(N = N, X = X, totn = 500):</span> could not find function "prop_alloc"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n n_adjusted LB   UB    N      X it_number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  55         55  0   55   55  85000        12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  80         80  0  610  610 100000        12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 201        201  0 2900 2900 250000        12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   4          4  0   25   25   5000        12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 160        160  0 1850 1850 200000        12</span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="co"># Total sample size of 500, allocated proportionally to the number of units (N)</span></span></span>
 <span class="r-in"><span>  <span class="fu">prop_alloc</span><span class="op">(</span>N <span class="op">=</span> <span class="va">N</span>, X <span class="op">=</span> <span class="va">N</span>, totn <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prop_alloc(N = N, X = N, totn = 500):</span> could not find function "prop_alloc"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n n_adjusted LB   UB    N    X it_number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   5          5  0   55   55   55         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  56         56  0  610  610  610         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 267        267  0 2900 2900 2900         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   2          2  0   25   25   25         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 170        170  0 1850 1850 1850         0</span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="co"># Example with minimum and maximum number to be allocated per stratum</span></span></span>
 <span class="r-in"><span>  <span class="va">max_n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">200</span>, <span class="fl">300</span>, <span class="cn">NA</span>, <span class="fl">300</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu">prop_alloc</span><span class="op">(</span>N <span class="op">=</span> <span class="va">N</span>, X <span class="op">=</span> <span class="va">X</span>, totn <span class="op">=</span> <span class="fl">500</span>, min_n <span class="op">=</span> <span class="fl">5</span>, max_n <span class="op">=</span> <span class="va">max_n</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prop_alloc(N = N, X = X, totn = 500, min_n = 5, max_n = max_n):</span> could not find function "prop_alloc"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n n_adjusted LB  UB    N      X min_n max_n it_number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  40         40  5  40   55  85000     5    40         9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  83         83  5 200  610 100000     5   200         9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 207        207  5 300 2900 250000     5   300         9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   5          5  5  25   25   5000     5    NA         9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 165        165  5 300 1850 200000     5   300         9</span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="co"># Example with take-all stratum and maximum number to be allocated per stratum</span></span></span>
 <span class="r-in"><span>  <span class="va">take_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu">prop_alloc</span><span class="op">(</span>N <span class="op">=</span> <span class="va">N</span>, X <span class="op">=</span> <span class="va">X</span>, totn <span class="op">=</span> <span class="fl">500</span>, max_n <span class="op">=</span> <span class="fl">200</span>, take_all <span class="op">=</span> <span class="va">take_all</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prop_alloc(N = N, X = X, totn = 500, max_n = 200, take_all = take_all):</span> could not find function "prop_alloc"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n n_adjusted LB  UB    N      X take_all max_n it_number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  55         55  0  55   55  85000        0   200         7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  76         76  0 200  610 100000        0   200         7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 191        191  0 200 2900 250000        0   200         7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  25         25 25  25   25   5000        1   200         7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 153        153  0 200 1850 200000        0   200         7</span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span><span class="co"># Example where the algorithm does not give exactly the desired total sample size</span></span></span>
 <span class="r-in"><span>  <span class="va">N</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">58</span>, <span class="fl">610</span>, <span class="fl">2900</span>, <span class="fl">15</span>, <span class="fl">1850</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">88000</span>, <span class="fl">100000</span>, <span class="fl">250000</span>, <span class="fl">50000</span>, <span class="fl">200000</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu">prop_alloc</span><span class="op">(</span>N <span class="op">=</span> <span class="va">N</span>, X <span class="op">=</span> <span class="va">X</span>, totn <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in prop_alloc(N = N, X = X, totn = 200):</span> could not find function "prop_alloc"</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The algorithm failed to achieve the desired sample size of 200 units. The algorithm returned a sample of 199 units.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span>   n_adjusted is an adjusted version of the allocation n, which has exactly sample size 200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    n n_adjusted LB   UB    N      X it_number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26         27  0   58   58  88000      1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 29         29  0  610  610 100000      1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 72         72  0 2900 2900 250000      1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 14         14  0   15   15  50000      1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 58         58  0 1850 1850 200000      1000</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
