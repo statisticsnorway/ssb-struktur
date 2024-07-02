@@ -251,6 +251,7 @@ prop_alloc <- function(N, X, totn, take_all = NULL, take_none = NULL, min_n = NU
 #' @param digits An integer indicating the number of decimal places (default 0). Negative values are allowed (see 'Description')
 #'
 #' @return The rounded numbers
+#' @keywords internal
 #'
 round2 = function(x, digits = 0) {
   posneg <- sign(x)

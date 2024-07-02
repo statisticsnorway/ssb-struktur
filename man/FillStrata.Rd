@@ -66,6 +66,8 @@ c(35, 3, 2, 30, 7)}
 \item{N}{The population size within each strata. For example N = c(100, 100,
 500, 50, 150)}
 
+\item{...}{Additional arguments to be passed to the function.}
+
 \item{totn}{The total desired sample size}
 
 \item{varLimits}{The desired maximum variance for each group.  Note: When

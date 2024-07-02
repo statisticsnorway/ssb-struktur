@@ -112,7 +112,7 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   
   dat <- dat[order(dat$strata, -dat$x, -dat$y), ]
   stratalist <- unique(dat$strata) 
-  dat$numb <- ave(rep(1, times = nrow(dat)), dat$strata, FUN = cumsum)
+  dat$numb <- stats::ave(rep(1, times = nrow(dat)), dat$strata, FUN = cumsum)
   dat$z <- ifelse(is.na(dat$x) | dat$x < 0, 0, dat$x) 
   
   if(1 %in% method) {
@@ -162,10 +162,10 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   }
   
   if(1 %in% method) {
-    cumz <- ave(dat$z, dat$strata, FUN = cumsum)
-    sumz <- ave(dat$z, dat$strata, FUN = sum)
+    cumz <- stats::ave(dat$z, dat$strata, FUN = cumsum)
+    sumz <- stats::ave(dat$z, dat$strata, FUN = sum)
     cumzperc <- (cumz / sumz) * 100  # if sumz = 0 then cumzperc = NaN, and available1and2=0 because z=0
-    help <- ave(cumzperc, dat$strata, FUN = displace) # help = c(0, cumzperc[1:n-1])
+    help <- stats::ave(cumzperc, dat$strata, FUN = displace) # help = c(0, cumzperc[1:n-1])
     dat$large1 <- ifelse((cumzperc <= dat$par_method1 | help < dat$par_method1) & (available1and2 == 1), 1, 0)
   }
   
@@ -178,7 +178,7 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   }
   
   if(4 %in% method) {
-    NikkeNA <- ave(dat$x, dat$strata, FUN = function(x){sum(!is.na(x))})
+    NikkeNA <- stats::ave(dat$x, dat$strata, FUN = function(x){sum(!is.na(x))})
     n_method4 <- ceiling((dat$par_method4/100) * NikkeNA)
     dat$large4 <- ifelse((dat$numb <= n_method4) & (available3and4 == 1), 1, 0)
   }
@@ -222,6 +222,7 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
 #' @param x_1 A single number (NA are allowed)
 #'
 #' @return A vector
+#' @keywords internal
 #' 
 displace <- function(x, x_1 = 0) {
   n <- length(x)

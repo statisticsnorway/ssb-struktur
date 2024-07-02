@@ -108,6 +108,7 @@ FSgroupMulti       <- function(s2,N,totY,min_n,group=rep("group1",length(N)),...
 #' @param returnMatrix Logical on whether to return the matrix
 #' @param totnGroup Maximal total sample size within group (override cvLimits)
 #' @param min_nGroup Minimal total sample size within group (override cvLimits)
+#' @param ... Additional arguments to be passed to the function.
 #' @return The output from \bold{FSmatrix} (FillStrata with returnMatrix=TRUE)
 #' is a two-dimensional list.
 #' 

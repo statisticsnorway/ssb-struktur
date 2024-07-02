@@ -7,3 +7,6 @@ run_examples.R
 ^pkgdown$
 ^/data-raw$
 ^.github$
+^\.github$
+LICENSE.md
+SECURITY.md

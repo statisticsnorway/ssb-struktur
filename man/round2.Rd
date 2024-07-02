@@ -18,3 +18,4 @@ The rounded numbers
 Rounds according to the "round up" rule: When a number is halfway between two others, it is rounded toward the nearest number that is away from zero.
 Rounding to a negative number of digits means rounding to a power of ten, so for example round(x, digits = -2) rounds to the nearest hundred.
 }
+\keyword{internal}

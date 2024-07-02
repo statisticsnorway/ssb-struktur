@@ -1,7 +1,7 @@
 Package: struktuR
 Type: Package
 Title: Estimation For Structure Statistics
-Version: 0.1.6
+Version: 0.1.7
 Authors@R: 
   c(person(given = "Susie",
            family = "Jentoft",
@@ -32,3 +32,5 @@ Suggests:
     magrittr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
