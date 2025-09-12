@@ -5,7 +5,7 @@
 \title{Get extreme values
 Get extreme values in the sample dataset}
 \usage{
-get_extremes(data, id = NULL, x = NULL, y = NULL, strata = NULL, na_rm = TRUE)
+get_extremes(data, id = NULL, x = NULL, y = NULL, na_rm = TRUE)
 }
 \arguments{
 \item{data}{Population data frame with additional variables from rate_model output}
@@ -15,8 +15,6 @@ get_extremes(data, id = NULL, x = NULL, y = NULL, strata = NULL, na_rm = TRUE)
 \item{x}{Name of the explanatory variable}
 
 \item{y}{Name of the statistic variable}
-
-\item{strata}{Name of the stratification variable}
 
 \item{na_rm}{Logical for whether to remove NA values. Default = TRUE.}
 }

@@ -5,7 +5,7 @@
 \title{Get strata results
 Get a table for results in each stratum for a rate model}
 \usage{
-get_strata_results(data, x = NULL, y = NULL, strata = ".strata")
+get_strata_results(data, x = NULL, y = NULL)
 }
 \arguments{
 \item{data}{Population data frame with additional variables from rate_model output}
@@ -13,8 +13,6 @@ get_strata_results(data, x = NULL, y = NULL, strata = ".strata")
 \item{x}{Name of the explanatory variable}
 
 \item{y}{Name of the statistic variable}
-
-\item{strata}{Name of the stratification variable}
 }
 \value{
 Table with strata results

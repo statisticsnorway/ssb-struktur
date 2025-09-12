@@ -5,14 +5,12 @@
 \title{Plot CVs
 Plot comparison of the different robust estimations of the CVs}
 \usage{
-plot_cv(data, y, strata)
+plot_cv(data, y)
 }
 \arguments{
 \item{data}{Data which is the output from get_results() function}
 
 \item{y}{Name of the statistic variable}
-
-\item{strata}{Name of stratification variable.}
 }
 \value{
 Plot of cv comparisons

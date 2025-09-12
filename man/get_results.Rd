@@ -5,7 +5,7 @@
 \title{Get estimates
 Get estimates for groups (or strata) from rate model output}
 \usage{
-get_results(data, x = NULL, y = NULL, strata = NULL, group = NULL)
+get_results(data, x = NULL, y = NULL, group = NULL)
 }
 \arguments{
 \item{data}{Population data frame with additional variables from rate_model output}
@@ -13,8 +13,6 @@ get_results(data, x = NULL, y = NULL, strata = NULL, group = NULL)
 \item{x}{Name of the explanatory variable.}
 
 \item{y}{Name of the statistic variable to estimate.}
-
-\item{strata}{Name of the stratification variable for running models within.}
 
 \item{group}{Name of variable(s) for using for groups.}
 }
