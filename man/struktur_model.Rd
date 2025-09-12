@@ -18,7 +18,7 @@ struktur_model(
 \arguments{
 \item{data}{Population data frame}
 
-\item{sample_data}{Sample data frame or variable with sample indicator (1 for in sample, 0 otherwise)}
+\item{sample_data}{Sample data frame}
 
 \item{id}{Name of identification variable as a string. Should be same in sample_data and data dataframes.}
 

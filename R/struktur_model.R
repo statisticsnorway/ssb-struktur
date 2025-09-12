@@ -3,7 +3,7 @@
 #' Estimates total and uncertainty for a rate, homogeneous or regression model within strata.
 #'
 #' @param data Population data frame
-#' @param sample_data Sample data frame or variable with sample indicator (1 for in sample, 0 otherwise)
+#' @param sample_data Sample data frame
 #' @param id Name of identification variable as a string. Should be same in sample_data and data dataframes.
 #' @param x Name of the explanatory variable.
 #' @param y Name of the statistic variable.
@@ -31,6 +31,12 @@ struktur_model <- function(
     stop(paste0("The variable ", y, " could not be found in the data sets." ))
   }
   
+  # Add strata variable(s) to sample data if not found
+  strata_tmp <- strata[!strata %in% names(sample_data)]
+  if (!is.null(sample_data) & length(strata_tmp)>0) {
+    m <- match(data[, id], sample_data[, id])
+    sample_data[strata_tmp] <- data[!is.na(m), strata_tmp] 
+  }
   
   # need to set up sample data frame if no data is given - TO DO LATER: set up for multiple y's
   if (is.null(sample_data)){
@@ -250,12 +256,11 @@ struktur_model <- function(
 #' @param data Population data frame with additional variables from rate_model output
 #' @param x Name of the explanatory variable
 #' @param y Name of the statistic variable
-#' @param strata Name of the stratification variable
 #'
 #' @return Table with strata results
 #'
-get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
-  if (is.null(strata)) strata <- get_var(data, "strata")
+get_strata_results <- function(data, x=NULL, y=NULL){
+  strata <- get_var(data, "strata")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
   
@@ -344,17 +349,13 @@ get_strata_results <- function(data, x=NULL, y=NULL, strata=".strata"){
 #' @param data Population data frame with additional variables from rate_model output
 #' @param x Name of the explanatory variable.
 #' @param y Name of the statistic variable to estimate.
-#' @param strata Name of the stratification variable for running models within.
 #' @param group Name of variable(s) for using for groups.
 #'
 #' @return Table with strata or group results
 #' @export
 #'
-get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
-  if (is.null(strata)){
-    #strata <- get_var(data, "strata")
-    strata <- ".strata"
-  }
+get_results <- function(data, x=NULL, y=NULL, group=NULL){
+  strata <- get_var(data, "strata")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
   if (is.null(group)) group <- strata
@@ -363,18 +364,43 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
   sample_data <- data[!is.na(data[, y]), ]
   
   # Get strata results
-  resultene <- get_strata_results(data, x, y, ".strata")
-  is_surprise <- "surprise_strata" %in% resultene[, ".strata"]
+  resultene <- get_strata_results(data, x, y)
+  is_surprise <- "surprise_strata" %in% resultene[, strata]
   
-  if (length(group) == 1 & group[1] == strata) {
+  if (length(group) == 1 & (group[1] == strata | group[1] == ".strata")) {
     return(resultene)
   }
   
+  # Check whether group variables cut across strata
+  if(length(group) > 1) {
+    sample_data[, ".group"] <- apply(sample_data[, group], 
+                                     1, paste, collapse = "_")
+  } else sample_data[, ".group"] <- sample_data[, group]
+  strata_n <- length(unique(sample_data[, strata]))
+  st_group_n <- nrow(unique(sample_data[, c(strata, ".group")]))
+  if(st_group_n > strata_n) {
+    stop("One or more group variables cut across strata. Set group variables in a way that strata are the most detailed levels within each group.")
+  }
+  
+  
+
   # set up variable names - prep for multiple y's
   y_est <- paste(y, "est", sep="_")
   y_var <- paste(y, "var", sep="_")
-  y_cv <- paste(y, "cv", sep="_")
+  y_ub <- paste(y, "UB", sep="_")
+  y_lb <- paste(y, "LB", sep="_")
+  y_cv2 <- paste(y, "CV2", sep="_")
+  y_cv1 <- paste(y, "CV1", sep="_")
+  y_cv3 <- paste(y, "CV3", sep="_")
+  y_var1 <- paste(y, "var1", sep="_")
+  y_var3 <- paste(y, "var3", sep="_")
   
+
+  # Add the other two robust variances
+  resultene[, y_var1] <- (resultene[, y_cv1] * resultene[, y_est] / 100)^2
+  resultene[, y_var3] <- (resultene[, y_cv3] * resultene[, y_est] / 100)^2
+  
+    
   # Set up group data frame
   group_dt <- NULL
   
@@ -386,14 +412,14 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
     
     # Create vector for group for strata in T_h dataset
     if (is_surprise){
-      group_convert <- unique(sample_data[, c(".strata", group[g])])
+      group_convert <- unique(sample_data[, c(strata, group[g])]) 
       
       #exclude surprise strata first
-      m_surprise <- match("surprise_strata", resultene[, ".strata"])
+      m_surprise <- match("surprise_strata", resultene[, strata])
       if(!is.na(m_surprise)){
         resultene <- resultene[-m_surprise, ]
       }
-      m_strat <- match(resultene[, ".strata"], group_convert[, ".strata"])
+      m_strat <- match(resultene[, strata], group_convert[, strata]) 
     } else {
       group_convert <- unique(sample_data[, c(strata, group[g])])
       m_strat <- match(resultene[, strata], group_convert[, strata])
@@ -407,22 +433,32 @@ get_results <- function(data, x=NULL, y=NULL, strata=NULL, group=NULL){
       
       # Get group estimate, variance and cv
       dt_tmp[, y_est] <- sum(resultene[, y_est][grp_tmp[s] == Th_grp])
+      y_V1_tmp <- sum(resultene[, y_var1][grp_tmp[s] == Th_grp])
+      y_V3_tmp <- sum(resultene[, y_var3][grp_tmp[s] == Th_grp])
       dt_tmp[, y_var] <- sum(resultene[, y_var][grp_tmp[s] == Th_grp])
-      dt_tmp[, y_cv] <- sqrt(dt_tmp[, y_var])/dt_tmp[, y_est] * 100
+      dt_tmp[, y_ub] <- dt_tmp[, y_est] + 1.96 * sqrt(dt_tmp[, y_var])
+      dt_tmp[, y_lb] <- dt_tmp[, y_est] - 1.96 * sqrt(dt_tmp[, y_var])
+      dt_tmp[, y_cv1] <- sqrt(y_V1_tmp)/dt_tmp[, y_est] * 100 
+      dt_tmp[, y_cv2] <- sqrt(dt_tmp[, y_var])/dt_tmp[, y_est] * 100
+      dt_tmp[, y_cv3] <- sqrt(y_V3_tmp)/dt_tmp[, y_est] * 100 
       
       # Combine with other groups
       group_dt <- rbind(group_dt, dt_tmp)
     }
     if (is_surprise){
-      surprise_obs <- sample_data[sample_data[, ".strata"] == "surprise_strata", ]
+      surprise_obs <- sample_data[sample_data[, strata] == "surprise_strata", ]
       for (u in 1:nrow(surprise_obs)){
         # find right group to add to
         m <- match(surprise_obs[u, strata], group_convert[, 1])
         Th_sur_group <- match(group_convert[m, group[g]], group_dt[, "group"])
         
         # add in total and adjust cv
+        y_V1_tmp <- (group_dt[Th_sur_group, y_cv1] * group_dt[Th_sur_group, y_est] / 100)^2
+        y_V3_tmp <- (group_dt[Th_sur_group, y_cv3] * group_dt[Th_sur_group, y_est] / 100)^2
         group_dt[Th_sur_group, y_est] <- group_dt[Th_sur_group, y_est] + surprise_obs[u, y]
-        group_dt[Th_sur_group, y_cv] <- sqrt(group_dt[Th_sur_group, y_var])/group_dt[Th_sur_group, y_est] * 100
+        group_dt[Th_sur_group, y_cv1] <- sqrt(y_V1_tmp)/group_dt[Th_sur_group, y_est] * 100
+        group_dt[Th_sur_group, y_cv2] <- sqrt(group_dt[Th_sur_group, y_var])/group_dt[Th_sur_group, y_est] * 100
+        group_dt[Th_sur_group, y_cv3] <- sqrt(y_V3_tmp)/group_dt[Th_sur_group, y_est] * 100
       }
     }
   }
@@ -475,23 +511,19 @@ robust_var <- function(x_pop,           # populasjon
 #' @param id Name of identification variable as a string. Should be same in sample and data dataframes.
 #' @param x Name of the explanatory variable
 #' @param y Name of the statistic variable
-#' @param strata Name of the stratification variable
 #' @param na_rm Logical for whether to remove NA values. Default = TRUE.
 #'
 #' @return A data frame is return containing observations that have values that may be seen as outlier/extreme values
 #' @export
-get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRUE){
-  if (is.null(strata)){
-    strata <- ".strata"
-    #strata <- get_var(data, "strata")
-  }
+get_extremes <- function(data, id=NULL, x=NULL, y=NULL, na_rm = TRUE){
+  strata <- get_var(data, "strata")
   if (is.null(id)) id <- get_var(data, "id")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "y")
   
   # create sample
   sample_data <- data[!is.na(data[, y]), ]
-  sample_data <- sample_data[sample_data[, ".strata"] != "surprise_strata", ]
+  sample_data <- sample_data[sample_data[, strata] != "surprise_strata", ]
   
   # Set variable names
   y_g <- paste(y, "G", sep = "_")
@@ -545,12 +577,11 @@ get_extremes <- function(data, id=NULL, x=NULL, y=NULL, strata=NULL, na_rm = TRU
 #'
 #' @param data Data which is the output from get_results() function
 #' @param y Name of the statistic variable
-#' @param strata Name of stratification variable.
 #'
 #' @return Plot of cv comparisons
 #' @export
-plot_cv <- function(data, y, strata){
-  if (is.null(strata)) strata <- get_var(data, "strata")
+plot_cv <- function(data, y){
+  strata <- get_var(data, "strata")
   if (is.null(x)) x <- get_var(data, "x")
   if (is.null(y)) y <- get_var(data, "est")[1] # just plot first one for time being
   
@@ -560,7 +591,7 @@ plot_cv <- function(data, y, strata){
   CV3 <- paste(y, "CV3", sep = "_")
   
   if (!CV1 %in% names(data)){
-    stop("CV calculations were not found in dataset. Please run main function 'struktur_model' first.")
+    stop("CV calculations were not found in dataset. Please run main function 'struktur_model' first and then the function get_results.")
   }
   
   # Data needs to be in long format for ggplot
@@ -658,7 +689,7 @@ plot_extreme <- function(data, id = NULL, y = NULL, size = 10, type = "G", ylim 
 #' @param data Data frame to find variables in
 #' @param var Variable to find. Can be 'x', 'y', 'id' or 'strata'
 #' 
-#' @return varaible name
+#' @return variable name
 get_var <- function(data, var){
   if (var == "y"){
     i <- endsWith(names(data), '_rstud')
