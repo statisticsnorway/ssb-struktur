@@ -13,8 +13,12 @@ Authors@R:
   person(given = "Anna-Karin",
            family = "Mevik",
            role = "aut"),
-    person(given = "SSB",
-           role = "cph"))
+  person(given = "SSB",
+           role = "cph"),
+  person(given = "Melike",
+           family = "Oguz Alper",
+           role = "aut"),
+           )
 Maintainer: Susie Jentoft <susie.jentoft@ssb.no>
 Description: Estimation of totals within strata and groups using a 
   rate model. Variance and coefficient of variations are estimated using
@@ -23,7 +27,7 @@ Imports: ggplot2, Hmisc, stats, grDevices, utils, SSBtools
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests: 
     rmarkdown,
     knitr,
