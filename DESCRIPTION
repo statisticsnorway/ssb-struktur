@@ -17,13 +17,13 @@ Authors@R:
            role = "cph"),
   person(given = "Melike",
            family = "Oguz Alper",
-           role = "aut"),
+           role = "aut")
            )
 Maintainer: Susie Jentoft <susie.jentoft@ssb.no>
 Description: Estimation of totals within strata and groups using a 
   rate model. Variance and coefficient of variations are estimated using
   robust variance estimation.
-Imports: ggplot2, Hmisc, stats, grDevices, utils, SSBtools
+Imports: ggplot2, Hmisc, stats, grDevices, utils, SSBtools, ReGenesees
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -38,3 +38,5 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
+Remotes:
+    statisticsnorway/ReGenesees
