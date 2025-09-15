@@ -15,6 +15,7 @@
 #'
 #' @return Data frame for whole population with estimation strata obtained from strata merge, 
 #' and an indicator for merge (1 if merge took place, 0 otherwise).
+#' @importFrom stats ave formula
 #' @export
 merge_lonely_strata <- function(data, sample_data = NULL, id, x, y, strata, exclude = NULL, 
                          block = NULL, group = NULL) 
@@ -279,3 +280,6 @@ merge_lonely_strata <- function(data, sample_data = NULL, id, x, y, strata, excl
 
   return(data)
 }
+
+# Include clps.strata.status as a global variable to suppress warning notes
+utils::globalVariables(c("clps.strata.status"))
