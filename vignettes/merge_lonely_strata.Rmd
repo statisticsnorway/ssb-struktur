@@ -1,0 +1,338 @@
+---
+title: "Merge lonely strata"
+author: "Melike Oguz Alper"
+date: "10.09.2025"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{merge_lonely_strata}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+### Introduction
+The `merge_lonely_strata` is one of the R functions in the `struktuR` R package, which is documented [here](https://statisticsnorway.github.io/ssb-struktur/articles/struktur-vignette.html) (English). Lonely strata are defined to be non take-all strata with only one observation in sample data. Variance estimation would not be possible within such strata, which is a common problem, particularly in business surveys, where many strata, some of which may be quite small, are often used.  
+
+The main purpose of this function is to:
+
+* Create estimation strata (or artificial *superstrata*) by merging lonely strata.  
+
+This function uses the `collapse.strata` function from the `ReGenesees` package. The idea is to merge lonely strata by using population means of an auxiliary variable, denoted by $x$, as a similarity measure. A lonely stratum is merged to another lonely stratum or a larger stratum which is the most similar to that lonely stratum in terms of the population mean of the $x$-variable. If strata with only one observation are take-all strata, then these strata are ignored in strata merging since corresponding variances are set to zero for such strata in the `struktuR` as well as in the Python version [Statstruk](https://statisticsnorway.github.io/ssb-statstruk/guide_ratio.html), and SAS-application Struktur ([Using SAS-Struktur](https://www.ssb.no/a/publikasjoner/pdf/notat_200730/notat_200730.pdf), Norsk).  
+
+
+This function should only be used for sample surveys with (stratified) single-stage sampling design where simple random sampling is used within each stratum to select sampling units.    
+
+Strata merge may not always be successful due to the reasons described in the following section of this document.  
+
+
+```{r, include = FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+library(knitr)
+library(kableExtra)
+library(magrittr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#",
+  error = FALSE,
+  tidy = FALSE,
+  cache = FALSE,
+  collapse = TRUE,
+  out.width = '100%',
+  dpi = 144
+)
+```
+
+
+### Package installation
+For internal Statistic Norway users, the package is already installed on many of the production servers and this step may be skipped. For other users the package can be installed from github using the `devtools` function `install_github`. This step only needs to be run one time.
+
+```{r install, eval=FALSE}
+devtools::install_github("statisticsnorway/ssb-struktur")
+```
+
+To access and use the functions in the package we need to run `library` each time we start a new R session.
+
+```{r}
+library(struktuR)
+```
+
+
+### Data requirements
+We need data on both the *sample* and *population*. The following variables should be included:
+
+**Population data set**:
+
+* ID variable (`id`) which is consistent in both the population and sample data sets.
+* An explanatory variable when using regression and rate models (`x`). This is a variable which the statistic variable is correlated with.
+* A strata variable (`strata`) which divides the population into groups which are similar to each other. This is the smallest grouping variable and which separate models will be run on.
+* Domain variables (or publication groups: `group`) for producing statistical totals for. These should be able to be created by joining strata groups together.
+* Blocking variables (`block`) that are used to constrain strata merge, in a way that estimation strata can only be created within blocks. This parameter may contain one or more blocking variables. 
+
+
+**Sample data set**:
+
+* ID variable (`id`)
+* The explanatory variable when using regression and rate models, but can be missing (`x`)
+* The statistic variable(s) we are interested in estimating (`y`)
+
+
+
+**Example data**
+
+There are two synthetic data sets in the `struktuR` package that contain lonely strata: pop_data_1obs, sample_data_1obs. `pop_data_1obs` represents a population data set with 10005 rows, each one representing a company. We will use the variable `employees`, which refers to the number of employees in the company, or `turnover`, as the $x$-variable. Variables `size` and `industry` will be used to specify the values of the `strata`, `block`, and/or `group` parameters of the function. 
+
+
+```{r, eval = F}
+head(pop_data_1obs)
+```
+
+```{r, echo = F}
+kable(head(pop_data_1obs)) %>%
+  kable_styling()
+```
+
+The data set `sample_data_1obs` contains 1001 rows representing a sample of companies. In addition to the variables in the population data set, we do have some variables among which `job_vacancies` will be used as the $y$-variable, representing the number of job positions advertised for the year. 
+
+```{r, eval = F}
+head(sample_data_1obs)
+```
+
+```{r, echo = F}
+kable(head(sample_data_1obs)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+```
+
+
+Let's see which strata are lonely strata by running the following code.
+
+```{r, eval = F}
+table(sample_data_1obs$industry)
+```
+
+As it can be noticed, the industry group G has only one observation in the sample data set. 
+```{r, echo = F}
+kable(table(sample_data_1obs$industry)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+```
+
+The same stratum has five observations in the population data set. Hence, it is, in fact, a lonely stratum that we can handle by using the `merge_lonely_strata` function. 
+
+```{r, eval = F}
+pop_data_1obs[pop_data_1obs$industry=="G", ]
+```
+
+```{r, echo = F}
+kable(pop_data_1obs[pop_data_1obs$industry=="G", ]) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+```
+
+
+### Parameter specifications
+The default values of the parameters `block` and `group` are set to `NULL`. However, it is highly recommended to provide these variables. When specifying blocking variable(s), one must pay attention to that design strata are the most detailed groups within each block. In other words, each block must be either a design stratum or a group of design strata. Otherwise, the function would provide an error message. It is also recommended that blocks are set in a way that the sampling fractions do not vary a lot within each block. If possible, one may consider grouping design strata with similar sampling fractions to reduce bias that may arise merging strata with different fractions. Bias may occur due to assuming equal weights for all units within each estimation stratum.
+
+Specification of the the publication domains (`group`) is also important to check the suitability of domain variables given (estimation) strata. Because, one may have issues in the estimation process with `struktur_model` later on if one or more domain variables cut across strata or estimation strata.   
+
+An additional parameter `exclude` in the function, allows one to include a list of IDs to exclude from the modelling in the estimation stage. This can be useful if there are some extreme values which will heavily influence the results but are most likely correct values. If a singleton stratum includes an ID that is specified to be excluded, then that stratum is not considered as lonely stratum since its corresponding variance is set to zero in the estimation with the `struktuR` package and the Pyhton version of it.  
+
+
+
+### Usage of the function
+At first, we will demonstrate how the function `merge_lonely_strata` works. Population and sample datasets, one auxiliary variable ($x$-variable), one statistic variable ($y$-variable), an id variable and strata variable(s) must all be provided. Then, some examples regarding the effect of blocking variable(s) will be given. Finally, we will some examples regarding the use of publication domain variables. Note that blocking and group variables are optional but it would be good to specify them for the reasons explained above. 
+
+
+**Example 1**
+
+In this example, we shall use industry groups as the stratification variable and the number of employees as the $x$-variable. Here, we will not specify any blocking constraint, neither group variable(s). 
+
+```{r, message=FALSE, eval = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "employees", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = "industry")
+```
+
+
+```{r, message=FALSE, echo = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "employees", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = "industry")
+kable(head(results)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+```
+
+The output of the function is a population dataset with additional columns: 
+
+- `est_strata` refers to the estimation strata which can be design strata or superstrata that are formed newly.
+- `merged` is an indicator variable taking value 1 if merge took place or value 0 otherwise. 
+
+Value of each newly created superstratum is formed by binding values of the two strata that are merged with underscore as shown in the result table below. In this example, the lonely stratum "G" is merged to stratum "D", so the new estimation strata has a value of "D_G".
+
+```{r, message=FALSE, eval = F}
+head(results[results$merged==1, ])
+```
+
+
+```{r, message=FALSE, echo = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "employees", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = "industry")
+kable(head(results[results$merged==1, ])) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+```
+
+
+
+
+
+
+**Example 2**
+
+In the examples below, we shall use both size and industry groups as the stratification variables and turnover as the $x$-variable. In this example, We will examine strata merge without blocking variable(s).
+
+
+
+```{r, message=FALSE, eval = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"))
+```
+
+As it can seen from the Table in the previous section, the company in the lonely stratum "G" is a medium-size company, so its size group is "mid". With strata merge, stratum "mid_G" is merged to stratum "small_D". When we do not specify a blocking variable, it is possible to have such merging. If sampling fractions differ quite much among small- and medium size groups, then this may bring about a bias problem as mentioned previously. To reduce bias, one may put a blocking constraint when forming superstrata. This is demonstrated below. 
+
+
+
+```{r, message=FALSE, eval = F}
+head(results[results$merged==1, ])
+```
+
+
+```{r, message=FALSE, echo = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"))
+kable(head(results[results$merged==1, ])) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+```
+
+
+
+**Example 3**
+
+In this example, we shall put a blocking constraint as such that strata merge will only take place within blocks, which means that strata from different blocks cannot be merged even they are similar to each other in terms of the population mean of the $x$-variable (turnover here). 
+
+To avoid merging strata from different size groups, we may use size groups as the value of the `block` parameter as follows:
+
+
+```{r, message=FALSE, eval = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"),
+                          block = "size")
+```
+
+
+
+Since we avoid strata merge across blocks, the lonely stratum "mid_G" is now merged to stratum "mid_C" instead of "small_D". The new super strata is called "mid_C_mid_G" as seen below. 
+
+```{r, message=FALSE, eval = F}
+head(results[results$merged==1, ])
+```
+
+
+```{r, message=FALSE, echo = F}
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"),
+                          block = "size")
+kable(head(results[results$merged==1, ])) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+```
+
+
+**Example 4**
+
+In this example, we demonstrate how to specify the grouping variable. At first, we will use an inappropriate group variable, and then we will fix this by creating a suitable one depending on which design strata are merged. 
+
+Suppose that we wish to produce statistics at country level and by industry groups. If so, we need put a variable corresponding to country and industry groups as the value of the `group` parameter.
+
+
+
+```{r, message=FALSE, eval = F}
+pop_data_1obs$country <- 1
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"),
+                          block = "size",
+                          group = c("country", "industry"))
+```
+
+
+The code above will produce a warning message since one or more group variables(s) cut across strata or super strata (estimation strata). This is due to the fact that two industry groups, that is, "C" and "G" are merged, and so the publication domain needs to be minimum at estimation strata level. In other words, design strata or super strata need to be the most detailed groups within each publication domain. 
+
+
+```{r, echo = F}
+pop_data_1obs$country <- 1
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"),
+                          block = "size",
+                          group = c("country", "industry"))
+```
+
+
+The function would still produce an output data. However, this will be an issue when newly created estimation strata are used as the stratification variable with an inappropriate publication domain variable in the `struktuR` R package. One can use the output of the function `merge_lonely_strata` as a diagnostic to decide suitable publication domains given strata or estimation strata.
+
+To remedy the issue in this example, we will simply create a new domain variable by merging two design strata as follows.
+
+
+```{r, message=FALSE, eval = F}
+pop_data_1obs$domain <- pop_data_1obs$industry
+pop_data_1obs$domain[pop_data_1obs$industry %in% c("C", "G")] <- "C_G"
+results <- merge_lonely_strata(pop_data_1obs, sample_data_1obs, 
+                          x = "turnover", 
+                          y = "job_vacancies", 
+                          id = "id",
+                          strata = c("size", "industry"),
+                          block = "size",
+                          group = c("country", "domain"))
+```
+
+
+
+
+
+
+### Restrictions
+
+- The use of this function will require some expert judgement when it comes to the specification of the `block` and `group` parameters. There may be some back and forwards. Users are advised to modify their choices depending on whether strata merge was successful and if so, which strata were merged.  
+
+- This function can only be used for a single statistic variable ($y$-variable). As a result of this, one may obtain different strata merge for different $y$-variables, and so publication domains per variable may differ as well. This is because of the fact that the identification of lonely strata is done based on the number of observations within strata with non-null $y$-values. If missing patterns by strata vary a lot from variable to variable, then a lonely stratum for one $y$-variable may not be a lonely stratum for another statistic variable.  

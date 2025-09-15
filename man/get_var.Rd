@@ -12,7 +12,7 @@ get_var(data, var)
 \item{var}{Variable to find. Can be 'x', 'y', 'id' or 'strata'}
 }
 \value{
-varaible name
+variable name
 }
 \description{
 Get variable names
