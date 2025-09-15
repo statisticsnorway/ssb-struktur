@@ -44,7 +44,7 @@ knitr::opts_chunk$set(
 For internal Statistic Norway users, the package is already installed on many of the production servers and this step may be skipped. For other users the package can be installed from github using the `devtools` function `install_github`. This step only needs to be run one time.
 
 ```{r install, eval=FALSE}
-devtools::install_github("statisticsnorway/struktuR")
+devtools::install_github("statisticsnorway/ssb-struktur")
 ```
 
 To access and use the functions in the package we need to run `library` each time we start a new R session.
