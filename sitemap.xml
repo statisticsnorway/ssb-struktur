@@ -1,108 +1,40 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/SECURITY.html</loc>
-  </url>
-  <url>
-    <loc>/articles/FillStrata.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/struktur-vignette.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalcS2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalcY.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FillStrata.html</loc>
-  </url>
-  <url>
-    <loc>/reference/displace.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_extremes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_results.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_strata_results.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_var.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/mark_the_largest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_cv.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_extreme.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pop_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pop_data2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pop_data_1obs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pop_data_fulltelling.html</loc>
-  </url>
-  <url>
-    <loc>/reference/prop_alloc.html</loc>
-  </url>
-  <url>
-    <loc>/reference/robust_var.html</loc>
-  </url>
-  <url>
-    <loc>/reference/round2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sample_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sample_data_1obs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sample_data_fulltelling.html</loc>
-  </url>
-  <url>
-    <loc>/reference/struktur_model.html</loc>
-  </url>
-  <url>
-    <loc>/reference/testData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/testData2.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/SECURITY.html</loc></url>
+<url><loc>/articles/FillStrata.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/merge_lonely_strata.html</loc></url>
+<url><loc>/articles/struktur-vignette.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/CalcS2.html</loc></url>
+<url><loc>/reference/CalcY.html</loc></url>
+<url><loc>/reference/FillStrata.html</loc></url>
+<url><loc>/reference/displace.html</loc></url>
+<url><loc>/reference/get_extremes.html</loc></url>
+<url><loc>/reference/get_results.html</loc></url>
+<url><loc>/reference/get_strata_results.html</loc></url>
+<url><loc>/reference/get_var.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/mark_the_largest.html</loc></url>
+<url><loc>/reference/merge_lonely_strata.html</loc></url>
+<url><loc>/reference/plot_cv.html</loc></url>
+<url><loc>/reference/plot_extreme.html</loc></url>
+<url><loc>/reference/pop_data.html</loc></url>
+<url><loc>/reference/pop_data2.html</loc></url>
+<url><loc>/reference/pop_data_1obs.html</loc></url>
+<url><loc>/reference/pop_data_fulltelling.html</loc></url>
+<url><loc>/reference/prop_alloc.html</loc></url>
+<url><loc>/reference/robust_var.html</loc></url>
+<url><loc>/reference/round2.html</loc></url>
+<url><loc>/reference/sample_data.html</loc></url>
+<url><loc>/reference/sample_data_1obs.html</loc></url>
+<url><loc>/reference/sample_data_fulltelling.html</loc></url>
+<url><loc>/reference/struktur_model.html</loc></url>
+<url><loc>/reference/testData.html</loc></url>
+<url><loc>/reference/testData2.html</loc></url>
 </urlset>
+
