@@ -18,7 +18,7 @@ The main purpose of this function is to:
 
 * Create estimation strata (or artificial *superstrata*) by merging lonely strata.  
 
-This function uses the `collapse.strata` function from the `ReGenesees` package. The idea is to merge lonely strata by using population means of an auxiliary variable, denoted by $x$, as a similarity measure. A lonely stratum is merged to another lonely stratum or a larger stratum which is the most similar to that lonely stratum in terms of the population mean of the $x$-variable. If strata with only one observation are take-all strata, then these strata are ignored in strata merging since corresponding variances are set to zero for such strata in the `struktuR` as well as in the Python version of SAS-application Struktur ([Using SAS-Struktur](https://www.ssb.no/a/publikasjoner/pdf/notat_200730/notat_200730.pdf), Norsk).  
+This function uses the `collapse.strata` function from the `ReGenesees` package. The idea is to merge lonely strata by using population means of an auxiliary variable, denoted by $x$, as a similarity measure. A lonely stratum is merged to another lonely stratum or a larger stratum which is the most similar to that lonely stratum in terms of the population mean of the $x$-variable. If strata with only one observation are take-all strata, then these strata are ignored in strata merging since corresponding variances are set to zero for such strata in the `struktuR` as well as in the Python version [Statstruk](https://statisticsnorway.github.io/ssb-statstruk/guide_ratio.html), and SAS-application Struktur ([Using SAS-Struktur](https://www.ssb.no/a/publikasjoner/pdf/notat_200730/notat_200730.pdf), Norsk).  
 
 
 This function should only be used for sample surveys with (stratified) single-stage sampling design where simple random sampling is used within each stratum to select sampling units.    
@@ -48,7 +48,7 @@ knitr::opts_chunk$set(
 For internal Statistic Norway users, the package is already installed on many of the production servers and this step may be skipped. For other users the package can be installed from github using the `devtools` function `install_github`. This step only needs to be run one time.
 
 ```{r install, eval=FALSE}
-devtools::install_github("statisticsnorway/struktuR")
+devtools::install_github("statisticsnorway/ssb-struktur")
 ```
 
 To access and use the functions in the package we need to run `library` each time we start a new R session.
