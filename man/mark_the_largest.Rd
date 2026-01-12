@@ -9,7 +9,7 @@ mark_the_largest(
   idVar,
   strataVar = NULL,
   xVar,
-  yVar = NULL,
+  zVar = NULL,
   method = 1,
   par_method1 = NULL,
   par_method2 = NULL,
@@ -30,8 +30,8 @@ the marking is performed within each stratum}
 \item{xVar}{Name of x-variable. Should be numeric. +/-Inf is not allowed. NA's are allowed (would never 
 be marked)}
 
-\item{yVar}{Optional. Name of an extra sorting variable. Should be numeric. Only relevant for the 
-sorting of equal x-values, in which case the x's are ranked according to decreasing y-value. 
+\item{zVar}{Optional. Name of an extra sorting variable. Should be numeric. Only relevant for the 
+sorting of equal x-values, in which case the x's are ranked according to decreasing z-value. 
 NA's and +/-Inf are allowed. (NA is rated as less than -Inf)}
 
 \item{method}{The methods to be used (default is 1). Can choose between method 1, 2, 3 and 4 (see ‘Details’), 
