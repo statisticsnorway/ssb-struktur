@@ -11,8 +11,8 @@
 #'                  the marking is performed within each stratum
 #' @param xVar Name of x-variable. Should be numeric. +/-Inf is not allowed. NA's are allowed (would never 
 #'             be marked)
-#' @param yVar Optional. Name of an extra sorting variable. Should be numeric. Only relevant for the 
-#'             sorting of equal x-values, in which case the x's are ranked according to decreasing y-value. 
+#' @param zVar Optional. Name of an extra sorting variable. Should be numeric. Only relevant for the 
+#'             sorting of equal x-values, in which case the x's are ranked according to decreasing z-value. 
 #'             NA's and +/-Inf are allowed. (NA is rated as less than -Inf)
 #' @param method The methods to be used (default is 1). Can choose between method 1, 2, 3 and 4 (see ‘Details’), 
 #'               and can use multiple methods simultaneously. The methods are specified using a vector
@@ -79,7 +79,7 @@
 #' mark_the_largest(data = testData, idVar = 'id', strataVar = 'strata', xVar = 'x', 
 #'                  method = c(1, 4), par_method1 = c(20, 30), par_method4 = 25)
 #' 
-mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, method = 1, par_method1 = NULL, 
+mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, zVar = NULL, method = 1, par_method1 = NULL, 
                              par_method2 = NULL, par_method3 = NULL, par_method4 = NULL, 
                              max_n_method1and2 = NULL, min_x_method3and4 = NULL) {
   
@@ -87,7 +87,7 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   SSBtools::CheckInput(idVar, type = "varName", data = data)
   SSBtools::CheckInput(strataVar, type = "varName", data = data, okNULL = TRUE)
   SSBtools::CheckInput(xVar, type = "varName", data = data)
-  SSBtools::CheckInput(yVar, type = "varName", data = data, okNULL = TRUE)
+  SSBtools::CheckInput(zVar, type = "varName", data = data, okNULL = TRUE)
   SSBtools::CheckInput(method, type = "integer", okSeveral = TRUE, alt = c(1, 2, 3, 4), okDuplicates = TRUE)
   SSBtools::CheckInput(par_method1, type = "numeric", min = 0, max = 100, okSeveral = TRUE, okNULL = TRUE)
   SSBtools::CheckInput(par_method2, type = "numeric", min = 0, okSeveral = TRUE, okNULL = TRUE)
@@ -98,8 +98,8 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   
   dat <- data[, c(idVar, xVar)]
   names(dat) <- c("id", "x")
-  if(!is.null(yVar)) dat$y <- data[, yVar]
-  else dat$y <- 1
+  if(!is.null(zVar)) dat$z <- data[, zVar]
+  else dat$z <- 1
   if(!is.null(strataVar)) dat$strata <- data[, strataVar]
   else dat$strata <- 1
   
@@ -110,10 +110,10 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   
   dat <- dat[order(dat$id), ] # to ensure the same result regardless of the sorting of the input data set
   
-  dat <- dat[order(dat$strata, -dat$x, -dat$y), ]
+  dat <- dat[order(dat$strata, -dat$x, -dat$z), ]
   stratalist <- unique(dat$strata) 
   dat$numb <- stats::ave(rep(1, times = nrow(dat)), dat$strata, FUN = cumsum)
-  dat$z <- ifelse(is.na(dat$x) | dat$x < 0, 0, dat$x) 
+  dat$x0 <- ifelse(is.na(dat$x) | dat$x < 0, 0, dat$x) 
   
   if(1 %in% method) {
     if(is.null(par_method1)) par_method1 <- 25
@@ -149,7 +149,7 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
     if(length(max_n_method1and2) == 1) max_n_method1and2 <- rep(max_n_method1and2, length(stratalist))
     if(length(max_n_method1and2) != length(stratalist)) stop("max_n_method1and2: Wrong number of elements (must be either a number, or a vector with length equal to the number of strata)")
     dat$max_n_method1and2 <- max_n_method1and2[match(dat$strata, stratalist)]
-    available1and2 <- ifelse((dat$z > 0) & (dat$numb <= dat$max_n_method1and2), 1, 0)
+    available1and2 <- ifelse((dat$x0 > 0) & (dat$numb <= dat$max_n_method1and2), 1, 0)
   }
   
   har_ikke_oppgitt_min_x <- is.null(min_x_method3and4)
@@ -162,15 +162,15 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   }
   
   if(1 %in% method) {
-    cumz <- stats::ave(dat$z, dat$strata, FUN = cumsum)
-    sumz <- stats::ave(dat$z, dat$strata, FUN = sum)
-    cumzperc <- (cumz / sumz) * 100  # if sumz = 0 then cumzperc = NaN, and available1and2=0 because z=0
-    help <- stats::ave(cumzperc, dat$strata, FUN = displace) # help = c(0, cumzperc[1:n-1])
-    dat$large1 <- ifelse((cumzperc <= dat$par_method1 | help < dat$par_method1) & (available1and2 == 1), 1, 0)
+    cumx0 <- stats::ave(dat$x0, dat$strata, FUN = cumsum)
+    sumx0 <- stats::ave(dat$x0, dat$strata, FUN = sum)
+    cumx0perc <- (cumx0 / sumx0) * 100  # if sumx0 = 0 then cumx0perc = NaN, and available1and2=0 because x0=0
+    help <- stats::ave(cumx0perc, dat$strata, FUN = displace) # help = c(0, cumx0perc[1:n-1])
+    dat$large1 <- ifelse((cumx0perc <= dat$par_method1 | help < dat$par_method1) & (available1and2 == 1), 1, 0)
   }
   
   if(2 %in% method) {
-    dat$large2 <- ifelse(dat$z > dat$par_method2 & available1and2 == 1, 1, 0)
+    dat$large2 <- ifelse(dat$x0 > dat$par_method2 & available1and2 == 1, 1, 0)
   }
   
   if(3 %in% method) {
@@ -195,10 +195,10 @@ mark_the_largest <- function(data, idVar, strataVar = NULL, xVar, yVar = NULL, m
   dat$large <- ifelse(large1 == 1 | large2 == 1 | large3 == 1 | large4 == 1, 1, 0)
   
   row.names(dat) <- NULL
-  dat <- dat[, -c(5, 6)]  # removes numb og z
+  dat <- dat[, -c(5, 6)]  # removes numb og x0
   if(har_ikke_oppgitt_max_n) dat$max_n_method1and2 <- NULL
   if(har_ikke_oppgitt_min_x) dat$min_x_method3and4 <- NULL
-  if(is.null(yVar)) dat$y <- NULL
+  if(is.null(zVar)) dat$z <- NULL
   if(is.null(strataVar)) dat$strata <- NULL
   
   if(!(1 %in% method) & !is.null(par_method1)) cat("par_method1: This parameter is not used (it is only used by method 1)", "\n") 
